@@ -1,0 +1,4 @@
+interface:
+  display_name: "Expect Browser Testing"
+  short_description: "Run Expect real-browser QA"
+  default_prompt: "Use expect-cli to validate this web app in a real browser, focusing on the changed user flows and reporting pass/fail with repro steps."

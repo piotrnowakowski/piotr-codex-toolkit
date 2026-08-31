@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-PR Feature Audit"
+  short_description: "Real-browser feature audit before a PR"
+  default_prompt: "Use $pre-pr-feature-audit to critically test this branch as a user before its PR."

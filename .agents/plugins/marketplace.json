@@ -1,0 +1,20 @@
+{
+  "name": "piotr-codex-toolkit",
+  "interface": {
+    "displayName": "Piotr Codex Toolkit"
+  },
+  "plugins": [
+    {
+      "name": "pre-pr-qa-toolkit",
+      "source": {
+        "source": "local",
+        "path": "./plugins/pre-pr-qa-toolkit"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
