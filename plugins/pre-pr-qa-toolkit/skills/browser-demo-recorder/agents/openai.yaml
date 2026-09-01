@@ -1,4 +1,4 @@
 interface:
   display_name: "Browser Demo Recorder"
-  short_description: "Record browser walkthroughs with timestamped findings"
-  default_prompt: "Use $browser-demo-recorder to record a short Playwright browser walkthrough and report what worked, what broke, and what was difficult with MM:SS timecodes."
+  short_description: "Record verified browser flows with timed findings"
+  default_prompt: "Use $browser-demo-recorder to record this browser flow, verify the video, and return a structured report with timecoded findings."

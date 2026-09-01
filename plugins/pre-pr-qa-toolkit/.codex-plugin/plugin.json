@@ -1,7 +1,7 @@
 {
   "name": "pre-pr-qa-toolkit",
-  "version": "0.1.0",
-  "description": "Real-browser pre-PR feature audits and CityCatalyst demo recording.",
+  "version": "0.2.0",
+  "description": "Verified browser recordings, timecoded findings, pre-PR feature audits, and CityCatalyst demos.",
   "author": {
     "name": "Piotr Nowakowski",
     "url": "https://github.com/piotrnowakowski"
@@ -12,8 +12,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Pre-PR QA Toolkit",
-    "shortDescription": "Audit product features in a real browser before a PR.",
-    "longDescription": "Record reproducible browser walkthroughs, run critical user-centered feature audits, add an optional independent Expect pass, and record the standard CityCatalyst demo.",
+    "shortDescription": "Record and audit real browser flows before a PR.",
+    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, run critical user-centered feature audits, add an optional independent Expect pass, and record the standard CityCatalyst demo.",
     "developerName": "Piotr Nowakowski",
     "category": "Developer Tools",
     "capabilities": ["Browser testing", "Video recording", "UX audit"],

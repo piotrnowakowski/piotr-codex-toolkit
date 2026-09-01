@@ -1,51 +1,79 @@
 ---
 name: browser-demo-recorder
-description: Record browser demos, product walkthroughs, bug reproductions, app-flow videos, and concise exploration reports with Playwright. Use when the user asks to record, capture, show, produce a video, explore a browser flow, identify what works or breaks, or create a browser walkthrough of a local app, web app, website, OpenAI or Codex demo, Playwright flow, UI test flow, or clickable browser walkthrough.
+description: Record verified browser demos, product walkthroughs, and bug reproductions with Playwright, including timecoded evidence and a structured outcome report. Use when the user explicitly asks for a browser video, recorded walkthrough, or browser-flow demonstration. Do not trigger solely for code review, security review, or a general UX audit without a requested recording.
+metadata:
+  version: "1.1.0"
 ---
 
 # Browser Demo Recorder
 
-Use Playwright video recording instead of OS-level screen capture unless the user specifically needs desktop UI outside the browser.
+Record a truthful, reproducible browser walkthrough and return both the verified video and an evidence-based report.
 
-## Core Workflow
+Use Playwright video recording instead of OS-level capture unless the requested flow includes desktop UI outside the browser.
 
-1. Clarify the target flow only if it is not inferable. Otherwise choose a short practical flow and proceed.
-2. If the target is a local app, start or reuse the dev server and verify the URL before recording.
-3. Create a scenario module in the workspace, usually under `demo-recording/scenario.cjs`.
-4. Run `scripts/record_demo.cjs` from this skill with the scenario, output directory, and video name.
-5. Convert to MP4 when possible, inspect a frame, and attach the MP4 in the final response with an absolute Markdown media path.
-6. Include a short exploration report in the final response: what worked, what needs work, what crashed or broke, and what was difficult to exercise. Put an approximate `MM:SS` video timecode on every issue, crash, and blocker.
+## Recording boundaries
 
-Example command:
+- Exercise the real application stack, including the real backend, authentication, data, LLM calls, and tool calls when they are part of the flow.
+- Do not mock routes, responses, datasets, authentication, LLM outputs, tool events, or committed results unless the user explicitly requests a mock or prototype recording.
+- If the real stack is unavailable, record or report the blocker instead of presenting simulated behavior as working.
+- Do not expose credentials, tokens, private messages, personal data, or unrelated workspace content.
+- Authorization to record a flow permits ordinary browser interaction and clearly disposable local test data. It does not authorize production writes, destructive cleanup, external messages, or stopping shared services.
+- Stop only services or processes started for the recording.
+
+## Core workflow
+
+1. Infer the target URL, persona, account, and user flow from the request and workspace. Ask only when a missing choice would materially change the result.
+2. For a local app, reuse an existing healthy server when possible. Record the process identity of any server started for the demo.
+3. Verify the target URL before recording.
+4. Inside a Git repository, use the ignored repo-root directory `output/browser-demo-recording/` for scenarios, raw video, final video, preview frames, findings, metadata, and reports.
+5. Create a deterministic CommonJS scenario when interaction is required.
+6. Run `scripts/record_demo.cjs` from this skill. If `--output-dir` is omitted, the recorder defaults to `output/browser-demo-recording/` at the Git root.
+7. Preserve partial video and evidence if the flow stops early.
+8. Verify the recorder metadata, nonzero video duration and size, and at least one representative frame.
+9. Write the report using [references/report-template.md](references/report-template.md), embed the video, and link the saved report.
+
+Treat the recorder's structured `ok`, `error`, artifact paths, steps, observations, and findings as the primary execution evidence.
+
+## Recorder commands
+
+Interactive scenario:
 
 ```powershell
+$repoRoot = git rev-parse --show-toplevel
+$recordDir = Join-Path $repoRoot "output/browser-demo-recording"
 $recorderScript = Join-Path "<installed browser-demo-recorder skill directory>" "scripts\record_demo.cjs"
+
 node $recorderScript `
-  --script .\demo-recording\scenario.cjs `
-  --output-dir .\demo-recording `
+  --script "$recordDir\scenario.cjs" `
+  --output-dir $recordDir `
   --name app-demo `
   --headed
 ```
 
-For a simple static page, no scenario is needed:
+Simple page:
 
 ```powershell
+$repoRoot = git rev-parse --show-toplevel
+$recordDir = Join-Path $repoRoot "output/browser-demo-recording"
 $recorderScript = Join-Path "<installed browser-demo-recorder skill directory>" "scripts\record_demo.cjs"
+
 node $recorderScript `
   --url http://localhost:3000 `
-  --output-dir .\demo-recording `
+  --output-dir $recordDir `
   --name app-home `
   --headed
 ```
 
-## Scenario Template
+## Scenario contract
 
-Create a CommonJS scenario module that exports an async function:
+Create `output/browser-demo-recording/scenario.cjs` exporting one asynchronous function:
 
 ```js
-module.exports = async ({ page, step, highlight, wait }) => {
+module.exports = async ({ page, context, step, highlight, wait, finding }) => {
   await step("Open the dashboard");
-  await page.goto("http://localhost:3000/dashboard", { waitUntil: "domcontentloaded" });
+  await page.goto("http://localhost:3000/dashboard", {
+    waitUntil: "domcontentloaded",
+  });
   await wait(1000);
 
   const filter = page.getByRole("button", { name: /filters/i });
@@ -58,105 +86,146 @@ module.exports = async ({ page, step, highlight, wait }) => {
   await highlight(search);
   await search.fill("Krakow");
   await wait(1200);
+
+  const emptyState = page.getByText(/no results/i);
+  if (await emptyState.isVisible().catch(() => false)) {
+    finding(
+      "needs-work",
+      "Search returned an unexpected empty state",
+      "Visible after searching for Krakow.",
+    );
+  }
 };
 ```
 
-Keep scenarios deterministic:
+Use `finding(category, message, details)` for meaningful observations:
 
-- Prefer role, label, text, and test-id locators.
+- `needs-work`: user-visible friction, incorrect state, confusing behavior, degraded output, or a reliability concern;
+- `crashed-or-broke`: crashes, uncaught exceptions, or failed requests that break the flow;
+- `blocker`: permissions, CAPTCHA, unavailable services, missing data, or setup problems that prevent coverage;
+- `setup-noise`: expected environment behavior that should not be reported as a product defect.
+
+The recorder assigns the elapsed `MM:SS` timestamp.
+
+## Scenario quality
+
+- Prefer role, label, text, and test-ID locators.
+- Prefer stable `data-*` hooks over brittle text guesses for flaky controls.
 - Insert short waits after navigation, animation, typing, and route transitions.
-- Highlight important controls before clicking so the video is readable.
-- Keep demos short, usually 15-60 seconds.
-- Do not put credentials, tokens, or private data into the video.
-- For exploratory or QA-style recordings, capture evidence while recording:
-  - `page.on("console")` for errors and warnings.
-  - `page.on("pageerror")` for uncaught client exceptions.
-  - `page.on("response")` for failed app/API requests.
-  - Notes about visible broken UI states, confusing steps, validation behavior, or places where the scenario needed a fallback.
-- Track issue timing while recording:
-  - Start an elapsed timer when the scenario starts.
-  - Store findings as `{ at: "MM:SS", message, details }`.
-  - For console, page, or network events, record the elapsed time when the event fires.
-  - For visual issues found during frame review, use the frame extraction time or nearest visible step timestamp.
-  - If an issue spans a range, report the first visible time and optionally add `through MM:SS`.
-- Treat expected setup noise separately from product issues, such as unauthenticated `401` calls before login or dev-server compile delays.
+- Highlight important controls before interacting with them.
+- Keep ordinary demonstrations short, usually 15–60 seconds.
+- Use production-like inputs without exposing sensitive data.
+- Never add a fallback that converts a failed product step into apparent success.
+- Do not splice separate failed takes together to imply one successful flow.
+- Preserve exact prompts and summarize visible results for chat, search, or AI-assisted flows.
 
-## Exploration Report
+## Evidence capture
 
-When the user asks to explore, test, break, audit, or point out what works, the final response must include a concise report after the video:
+The recorder captures:
 
-- **What worked**: completed user-visible flows, good validation, graceful empty states, useful affordances.
-- **Needs work**: UX friction, unclear states, missing data, layout overlap, weak copy, slow or brittle interactions. Prefix each item with an approximate video timecode, for example `[00:42]`.
-- **Crashed or broke**: app crashes, uncaught exceptions, failed API calls, console errors that affect the flow. Prefix each item with an approximate video timecode. Say "No crash observed" if none were observed.
-- **Struggles / blockers**: setup problems, flaky external services, selectors that were hard to target, data gaps, permissions, CAPTCHA, or anything that limited coverage. Prefix each item with an approximate video timecode when it appears in the video.
-- **Artifacts / verification**: MP4 path, duration/size, preview-frame inspection, and any findings file path if one was created.
+- scenario steps with elapsed timestamps;
+- browser console errors and warnings;
+- uncaught page exceptions;
+- failed application or API responses with query strings removed;
+- scenario-authored findings;
+- the terminal URL and artifact paths.
 
-Keep the report direct and evidence-based. Timecodes may be approximate, but they must let the user jump to the relevant moment in the video. Do not overstate automated observations as root causes; phrase likely causes as hypotheses.
+Do not treat every technical event as a defect. Separate expected setup noise, cancelled navigation requests, unauthenticated calls before login, compile delays, and harmless polling from user-visible failures.
+
+Do not infer a root cause from a console or network event alone. Label likely causes as hypotheses.
+
+## Failure and retry handling
+
+If the scenario stops early:
+
+- preserve and verify the partial video;
+- record the first blocking step and available evidence;
+- keep successfully completed earlier steps in the report;
+- do not describe the recording as completed successfully.
+
+If metadata reports `ok: false`, either fix an identified recorder, environment, or locator problem and rerun, or return the verified partial artifact and explain the blocker.
+
+Rerun only when a specific non-product cause was identified and corrected. Do not rerun merely to hide a reproducible product failure.
+
+## Report depth
+
+Every recording requires a saved Markdown report and a concise chat summary.
+
+- Use the **standard report** for a straightforward walkthrough or demonstration.
+- Use the **detailed audit report** when the user asks to test, explore, reproduce a bug, identify problems, assess readiness, or provide PR evidence.
+
+Before reporting, read [references/report-template.md](references/report-template.md). Follow its outcome definitions, journey structure, finding format, evidence rules, and merge-verdict limits.
+
+At minimum, every report must state:
+
+- the recorded scope and outcome;
+- environment and starting state;
+- completed and incomplete journey steps;
+- what worked;
+- what needs work, with timecodes;
+- what crashed or broke;
+- struggles, blockers, and setup limitations;
+- prompts and observed results when applicable;
+- artifact verification and paths;
+- what was not tested;
+- a merge verdict only when PR readiness was part of the request.
 
 ## Dependencies
 
-The recorder script loads Playwright from the workspace where the command is run. If it fails with `Cannot find module 'playwright'`, install it in the workspace:
+The recorder resolves Playwright from the workspace where it runs. If unavailable:
 
 ```powershell
 npm install -D playwright
 npx playwright install chromium
 ```
 
-If the workspace has no Node project, create a disposable recording folder or use an existing demo folder with its own `package.json`.
+Do not modify repository dependencies automatically when an existing Playwright installation or disposable recording environment can be used.
 
-The script uses `ffmpeg` when available to create an MP4 alongside Playwright's WebM. If `ffmpeg` is missing, return the WebM.
+Use FFmpeg when available to produce MP4. If FFmpeg is unavailable or conversion fails, verify and return the WebM.
 
-## Handling Public Websites
+## Public websites
 
-Automated browsers can trigger Google, Cloudflare, or CAPTCHA verification. Do not try to bypass or solve verification challenges.
+Automated browsers may encounter CAPTCHA, Cloudflare, Google verification, or other anti-automation controls. Do not bypass or solve verification challenges.
 
-If a public search or browser step gets blocked:
+When blocked, preserve the blocker when useful, verify the intended destination through an appropriate public source, continue directly to a verified URL only when that still satisfies the requested demo, and state the limitation.
 
-- Record the blocker if it is part of the truthful demo.
-- Use web search or the target site's index to verify the destination.
-- Continue directly to the verified URL if the user wants the final page demo.
-- State the limitation in the final response.
-
-Use headed mode by default for public websites because it is closer to a real browser session. Use headless mode for local apps or CI-style recordings when it works.
+Use headed mode by default for public websites. Use headless mode for local or CI-style recordings when it behaves reliably.
 
 ## Verification
 
-Before finalizing:
-
-1. Check that the output video exists and has nonzero duration:
+Check duration and size:
 
 ```powershell
-ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 .\demo-recording\app-demo.mp4
+ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 .\output\browser-demo-recording\app-demo.mp4
 ```
 
-2. Extract and inspect a representative frame:
+Extract and inspect a representative frame:
 
 ```powershell
-ffmpeg -y -ss 00:00:05 -i .\demo-recording\app-demo.mp4 -frames:v 1 .\demo-recording\preview.png
+ffmpeg -y -ss 00:00:05 -i .\output\browser-demo-recording\app-demo.mp4 -frames:v 1 -update 1 .\output\browser-demo-recording\preview.png
 ```
 
-3. Use `view_image` on the frame when available.
+Confirm:
 
-If the scenario stops early, still verify and return the partial video when one exists. Explain where it stopped and include the observed blocker in the report.
+- the video exists and has nonzero duration and size;
+- the frame shows the intended application and state;
+- metadata corresponds to the final video;
+- reported issues and blockers have usable timecodes;
+- sensitive data is not visible;
+- the Markdown report is saved beside the artifacts.
 
-## Embedding Videos In Chat
+## Delivery
 
-In the final response, show the video with Markdown image or media syntax, not a plain link:
+Embed the verified video using an absolute forward-slash path:
 
 ```markdown
-![Demo](C:/absolute/path/to/demo-recording/app-demo.mp4)
+![Browser demo](C:/absolute/path/to/output/browser-demo-recording/app-demo.mp4)
 ```
 
-Use a forward-slash absolute path and do not wrap the path in angle brackets. If the generated MP4 lives in a path with spaces or fails to render as an inline player, copy it to a no-space export folder first, then embed that copied MP4:
+Also provide direct paths to the video and saved report. If the renderer cannot display a path containing spaces, copy only the verified final video to a no-space export directory and embed that copy.
 
-```powershell
-$destDir = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "codex_video_exports"
-New-Item -ItemType Directory -Force -Path $destDir | Out-Null
-Copy-Item -LiteralPath ".\demo-recording\app-demo.mp4" -Destination "$destDir\app-demo.mp4" -Force
-```
+## Cleanup
 
-```markdown
-![Demo](C:/Users/example/Documents/codex_video_exports/app-demo.mp4)
-```
+Remove only failed temporary takes and disposable artifacts created by this recording after the final video has been verified.
 
-Also include the direct filesystem path in text after the embed so the user can open it if the chat renderer fails.
+Preserve the final video, scenario, metadata, findings, report, preview frame, and requested evidence. Stop only processes started for the recording, and preserve pre-existing services, user data, databases, and unrelated working-tree changes.
