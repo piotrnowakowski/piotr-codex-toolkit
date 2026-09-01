@@ -9,7 +9,7 @@ Private Codex plugin marketplace for browser-based product QA and CityCatalyst d
 - `pre-pr-feature-audit` — critical, user-centered browser audit with a GO/NO-GO report.
 - `browser-demo-recorder` — verified Playwright walkthrough recording with structured metadata, timecoded findings, and standard or detailed audit reports.
 - `expect-browser-testing` — optional independent Expect browser pass.
-- `cc-demo-recorder` — standard CityCatalyst GHGI demo and point-by-point audit.
+- `record-citycatalyst-inventory-demo` — safe CityCatalyst GHGI demo with explicit cleanup approval, CC/CA runtime-error capture, checkpoints, Clima, results, and optional CSV.
 
 ## Prerequisites
 

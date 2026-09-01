@@ -1,4 +1,0 @@
-interface:
-  display_name: "CC demo Recorder"
-  short_description: "Record the standard CityCatalyst demo and audit each step"
-  default_prompt: "Use $cc-demo-recorder to record the standard CityCatalyst demo and produce a point-by-point audit: log in, create a city and 2022 GPC Basic AR6 inventory, add third-party and manual data, report results, download CSV, and summarize what passed, partially worked, failed, or was skipped."

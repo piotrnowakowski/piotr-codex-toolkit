@@ -1,7 +1,7 @@
 {
   "name": "pre-pr-qa-toolkit",
   "version": "0.2.0",
-  "description": "Verified browser recordings, timecoded findings, pre-PR feature audits, and CityCatalyst demos.",
+  "description": "Verified browser recordings, timecoded findings, pre-PR audits, and safe CityCatalyst demos with CC/CA error evidence.",
   "author": {
     "name": "Piotr Nowakowski",
     "url": "https://github.com/piotrnowakowski"
@@ -13,14 +13,14 @@
   "interface": {
     "displayName": "Pre-PR QA Toolkit",
     "shortDescription": "Record and audit real browser flows before a PR.",
-    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, run critical user-centered feature audits, add an optional independent Expect pass, and record the standard CityCatalyst demo.",
+    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, run critical user-centered feature audits, add an optional independent Expect pass, and record the safe CityCatalyst inventory demo with CC and Climate Advisor runtime-error evidence.",
     "developerName": "Piotr Nowakowski",
     "category": "Developer Tools",
     "capabilities": ["Browser testing", "Video recording", "UX audit"],
     "defaultPrompt": [
       "Critically audit this branch as a user before its PR.",
       "Record a browser walkthrough and report what breaks.",
-      "Record and audit the standard CityCatalyst demo."
+      "Record the safe CityCatalyst inventory demo and report all available CC and Climate Advisor runtime errors."
     ]
   }
 }

@@ -1,0 +1,28 @@
+{
+  "slug": "krakow",
+  "cityName": "Krakow",
+  "countryName": "Poland",
+  "cityLocode": "PL KRK",
+  "inventoryYears": [2023, 2024, 2025, 2022, 2021, 2020, 2019, 2018, 2017],
+  "inventoryCleanup": {
+    "whenAllRankedYearsOccupied": "propose-oldest-demo-owned-inventory"
+  },
+  "population": {
+    "city": "800653",
+    "region": "3430000",
+    "country": "36821749"
+  },
+  "manualInput": {
+    "preferredSubsector": "Residential buildings",
+    "buildingType": "building-type-all",
+    "fuelType": "fuel-type-propane",
+    "co2": "120",
+    "n2o": "2",
+    "ch4": "3",
+    "unit": "units-tonnes",
+    "dataQuality": "high",
+    "source": "Krakow municipal records",
+    "comments": "Manual entry added during the recorded Krakow inventory demo."
+  },
+  "climateAdvisorQuestion": "What is the difference between GPC and GPC+? Explain it to me in easy language."
+}
