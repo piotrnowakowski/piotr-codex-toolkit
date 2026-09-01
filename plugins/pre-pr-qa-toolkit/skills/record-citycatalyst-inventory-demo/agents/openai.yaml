@@ -1,0 +1,4 @@
+interface:
+  display_name: "Record CityCatalyst Inventory Demo"
+  short_description: "Record the CC demo with CC and CA error evidence"
+  default_prompt: "Use $record-citycatalyst-inventory-demo to record the safe CityCatalyst inventory demo and report every available CityCatalyst and Climate Advisor runtime error."
