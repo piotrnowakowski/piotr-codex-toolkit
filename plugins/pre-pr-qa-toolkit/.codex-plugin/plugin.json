@@ -1,26 +1,28 @@
 {
   "name": "pre-pr-qa-toolkit",
-  "version": "0.2.0",
-  "description": "Verified browser recordings, timecoded findings, pre-PR audits, and safe CityCatalyst demos with CC/CA error evidence.",
+  "version": "0.3.0",
+  "description": "Verified browser recordings, GitHub-review triage, UI/UX guidance, OEF MCP workflows, and safe CityCatalyst demos with CC/CA error evidence.",
   "author": {
     "name": "Piotr Nowakowski",
     "url": "https://github.com/piotrnowakowski"
   },
   "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
   "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
-  "keywords": ["browser-testing", "pre-pr", "qa", "playwright", "citycatalyst"],
+  "keywords": ["browser-testing", "pre-pr", "qa", "playwright", "github", "ui-ux", "oef", "citycatalyst"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Pre-PR QA Toolkit",
     "shortDescription": "Record and audit real browser flows before a PR.",
-    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, run critical user-centered feature audits, add an optional independent Expect pass, and record the safe CityCatalyst inventory demo with CC and Climate Advisor runtime-error evidence.",
+    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, inspect GitHub review feedback, apply data-backed UI/UX guidance, route current OEF work through the connected OEF MCP app, run critical user-centered feature audits, add an optional independent Expect pass, and record the safe CityCatalyst inventory demo with CC and Climate Advisor runtime-error evidence.",
     "developerName": "Piotr Nowakowski",
     "category": "Developer Tools",
-    "capabilities": ["Browser testing", "Video recording", "UX audit"],
+    "capabilities": ["Browser testing", "Video recording", "UX audit", "GitHub review triage", "OEF MCP workflows"],
     "defaultPrompt": [
       "Critically audit this branch as a user before its PR.",
       "Record a browser walkthrough and report what breaks.",
-      "Record the safe CityCatalyst inventory demo and report all available CC and Climate Advisor runtime errors."
+      "Record the safe CityCatalyst inventory demo and report all available CC and Climate Advisor runtime errors.",
+      "Show and classify the open GitHub PR comments without editing code.",
+      "Use OEF MCP to find the current status of this CityCatalyst ticket."
     ]
   }
 }
