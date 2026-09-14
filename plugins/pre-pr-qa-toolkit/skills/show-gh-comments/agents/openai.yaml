@@ -1,0 +1,4 @@
+interface:
+  display_name: "Show GH Comments"
+  short_description: "Summarize GitHub PR review comments"
+  default_prompt: "Use $show-gh-comments to inspect the open PR for my current branch, summarize review comments, and propose fixes without editing code."
