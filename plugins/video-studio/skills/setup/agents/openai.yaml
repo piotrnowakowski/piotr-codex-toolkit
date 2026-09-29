@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Setup"
+  short_description: "Scaffold and preflight a video project"
+  default_prompt: "Use $setup to scaffold the video project for my brief and run the preflight check."

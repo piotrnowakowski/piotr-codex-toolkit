@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Create"
+  short_description: "Build, review and render the video"
+  default_prompt: "Use $create to make the video from BRIEF.md: timeline, storyboard, first scenes to final quality, then scene by scene, and render the MP4 with cutdowns."

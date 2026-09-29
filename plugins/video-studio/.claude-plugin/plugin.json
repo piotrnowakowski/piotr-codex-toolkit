@@ -1,0 +1,21 @@
+{
+  "name": "video-studio",
+  "version": "0.3.0",
+  "description": "Make AI videos with Claude Code or Codex, from idea to MP4. scenario writes a director-style brief (Claude Pop / P(doom) style), setup scaffolds the project (ClaudeAnimationBase, HyperFrames, or hybrid), and create directs, animates, reviews and renders the video scene by scene. Music optional.",
+  "author": {
+    "name": "Piotr Nowakowski",
+    "url": "https://github.com/piotrnowakowski"
+  },
+  "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "music-video",
+    "animation",
+    "p5.brush",
+    "hyperframes",
+    "motion-graphics",
+    "lyric-video"
+  ]
+}
