@@ -1,0 +1,40 @@
+{
+  "name": "video-studio",
+  "version": "0.3.0",
+  "description": "Make AI videos from idea to MP4: scenario writes a director-style brief, setup scaffolds the project (ClaudeAnimationBase, HyperFrames or hybrid), create directs, animates, reviews and renders it scene by scene. Music optional.",
+  "author": {
+    "name": "Piotr Nowakowski",
+    "url": "https://github.com/piotrnowakowski"
+  },
+  "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "music-video",
+    "animation",
+    "p5.brush",
+    "hyperframes",
+    "motion-graphics",
+    "lyric-video",
+    "launch-video"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Video Studio",
+    "shortDescription": "Idea → brief → project → rendered video",
+    "longDescription": "Three skills for making AI videos with a coding agent. scenario turns an idea (and an optional song) into a long, director-style brief in the Claude Pop / P(doom) style and picks the engine: p5.brush hand-painted animation, HyperFrames HTML/GSAP motion graphics, or both. setup scaffolds the project folder and runs a preflight check. create builds the timeline and storyboard, sets the quality bar on the first scenes, works scene by scene with contact-sheet review, and renders the MP4 plus cutdowns.",
+    "developerName": "Piotr Nowakowski",
+    "category": "Creativity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Write a video brief for a 60-second launch video of my app",
+      "Set up the video project for this brief",
+      "Make the video from BRIEF.md"
+    ],
+    "brandColor": "#1F406B"
+  }
+}

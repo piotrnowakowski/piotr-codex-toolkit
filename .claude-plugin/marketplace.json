@@ -1,0 +1,16 @@
+{
+  "name": "piotr-codex-toolkit",
+  "owner": {
+    "name": "Piotr Nowakowski",
+    "url": "https://github.com/piotrnowakowski"
+  },
+  "description": "Piotr's agent plugins. Claude Code install lists the plugins that ship a Claude manifest.",
+  "plugins": [
+    {
+      "name": "video-studio",
+      "source": "./plugins/video-studio",
+      "description": "Make AI videos from idea to MP4: scenario brief, project setup, and scene-by-scene production with p5.brush, HyperFrames or hybrid. Music optional.",
+      "license": "MIT"
+    }
+  ]
+}

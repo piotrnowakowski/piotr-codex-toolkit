@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Scenario"
+  short_description: "Turn an idea into a director-style video brief"
+  default_prompt: "Use $scenario to turn my idea into a director-style video brief: pick the engine and audio mode, and write the brief plus a setup checklist."
