@@ -22,6 +22,15 @@ Private Codex plugin marketplace for browser-based product QA and CityCatalyst d
 
 Needs Node 22+, Chrome, ffmpeg and git. For the HyperFrames engine, also install the HyperFrames plugin (`codex plugin marketplace add heygen-com/hyperframes` then `codex plugin add hyperframes@hyperframes`). See `plugins/video-studio/README.md`.
 
+`motion-video` creates code-rendered motion films in Codex **and** Claude Code:
+
+- A self-contained `motion-video` skill for product features, motion graphics and logo animations.
+- An editable Three.js liquid-gold starter, HTML typography, absolute-time `renderAt(t)` and local Web Audio.
+- Playwright rendering, contact sheets, seek determinism and safe-area checks; ffmpeg H.264/AAC export with final decoded-audio measurements.
+- No required HyperFrames installation or paid API. Requires Node 20+, ffmpeg and ffprobe; the project installs its pinned Playwright/Three.js dependencies.
+
+Invoke **Motion Video** or `$motion-video`. See [the skill](plugins/motion-video/skills/motion-video/SKILL.md) for starter and renderer commands.
+
 ## Prerequisites
 
 - Install the Product Design plugin. `pre-pr-feature-audit` requires `product-design:audit` on every run.
@@ -38,13 +47,15 @@ The GitHub account installing the marketplace must have access to this repositor
 codex plugin marketplace add piotrnowakowski/piotr-codex-toolkit
 codex plugin add pre-pr-qa-toolkit@piotr-codex-toolkit
 codex plugin add video-studio@piotr-codex-toolkit
+codex plugin add motion-video@piotr-codex-toolkit
 ```
 
-`video-studio` also installs in Claude Code from the same repository:
+The video plugins also install in Claude Code from the same repository:
 
 ```powershell
 claude plugin marketplace add piotrnowakowski/piotr-codex-toolkit
 claude plugin install video-studio@piotr-codex-toolkit
+claude plugin install motion-video@piotr-codex-toolkit
 ```
 
 Restart or refresh the Codex app, then test the plugin in a new conversation.
@@ -57,6 +68,7 @@ If `codex` reports that `plugin` is an unexpected command, update Codex or add t
 codex plugin marketplace upgrade piotr-codex-toolkit
 codex plugin add pre-pr-qa-toolkit@piotr-codex-toolkit
 codex plugin add video-studio@piotr-codex-toolkit
+codex plugin add motion-video@piotr-codex-toolkit
 ```
 
 Use a new conversation after reinstalling so Codex loads the refreshed skills.
