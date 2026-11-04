@@ -11,6 +11,12 @@
       "source": "./plugins/video-studio",
       "description": "Make AI videos from idea to MP4: scenario brief, project setup, and scene-by-scene production with p5.brush, HyperFrames or hybrid. Music optional.",
       "license": "MIT"
+    },
+    {
+      "name": "motion-video",
+      "source": "./plugins/motion-video",
+      "description": "Code-rendered motion films with Three.js, deterministic Playwright rendering, local Web Audio and verified ffmpeg export.",
+      "license": "MIT"
     }
   ]
 }

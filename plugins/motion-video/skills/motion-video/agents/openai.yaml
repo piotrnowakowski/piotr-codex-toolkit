@@ -1,0 +1,4 @@
+interface:
+  display_name: "Motion Video"
+  short_description: "Code-rendered films with verified frames and audio"
+  default_prompt: "Use $motion-video to create and render a motion film from this brief."

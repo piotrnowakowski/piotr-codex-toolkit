@@ -1,0 +1,21 @@
+{
+  "name": "motion-video",
+  "version": "0.1.0",
+  "description": "Code-rendered motion films with Three.js, deterministic frame seeking, Playwright, local Web Audio and verified ffmpeg export.",
+  "author": { "name": "Piotr Nowakowski", "url": "https://github.com/piotrnowakowski" },
+  "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit/tree/main/plugins/motion-video",
+  "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "license": "MIT",
+  "keywords": ["motion-video", "animation", "threejs", "playwright", "web-audio", "ffmpeg"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Motion Video",
+    "shortDescription": "Animate in code. Render and verify the MP4.",
+    "longDescription": "Create reusable motion films from a product or creative brief. Includes a local Three.js starter, a pure renderAt(t) contract, frame-by-frame Playwright rendering, synthesized audio, contact sheets, deterministic seek checks and verification of the encoded video and audio.",
+    "developerName": "Piotr Nowakowski",
+    "category": "Creativity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Use Motion Video to make a motion film for this product.", "Make a longer version showing more of the product's real features.", "Render and verify this Motion Video composition."],
+    "brandColor": "#1F406B"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "motion-video",
+  "version": "0.1.0",
+  "description": "Make code-rendered motion films with Three.js, Playwright, local Web Audio and ffmpeg. Includes a reusable starter, deterministic frame checks and encoded audio verification.",
+  "author": { "name": "Piotr Nowakowski", "url": "https://github.com/piotrnowakowski" },
+  "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit/tree/main/plugins/motion-video",
+  "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "license": "MIT",
+  "keywords": ["motion-video", "animation", "threejs", "playwright", "web-audio", "ffmpeg"]
+}

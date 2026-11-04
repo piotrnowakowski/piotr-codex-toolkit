@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Motion Video</title>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script>
+<style>
+:root{--ink:#172035;--paper:#FAF8F5;--gold:#E8C98A}
+html,body{margin:0;background:var(--ink)}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ink);color:var(--paper);font-family:Arial,sans-serif}
+#stage *{box-sizing:border-box}
+[data-shot],#gl{position:absolute;inset:0}
+[data-shot]{visibility:hidden}
+#gl{pointer-events:none;z-index:2}
+.label{position:absolute;left:150px;top:235px;font:600 24px/1.3 Arial;letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+h1{position:absolute;left:140px;top:330px;margin:0;width:780px;font:600 150px/1.04 Georgia,serif;letter-spacing:-.04em}
+.note{position:absolute;left:150px;top:740px;font:400 32px/1.5 Arial;max-width:740px}
+#craft{background:var(--paper);color:var(--ink)}
+#craft .label{color:#1F406B}
+#craft .label{top:145px}
+#craft h1{width:1200px;top:235px;font-size:130px}
+.steps{position:absolute;left:150px;top:705px;display:flex;gap:45px;font:400 32px Arial;color:#1F406B}
+#end h1{font-size:142px;width:900px}
+</style></head><body>
+<div id="stage">
+ <section id="hook" data-shot data-start="0" data-duration="2.5"><div class="label" data-check-bounds>Motion Video</div><h1 data-check-bounds>Make it<br>move.</h1><div class="note" data-check-bounds>One idea. Made visible.</div></section>
+ <section id="craft" data-shot data-start="2.5" data-duration="3"><div class="label" data-check-bounds>From a brief to a film</div><h1 data-check-bounds>Sketch.<br>Animate.<br>Render.</h1><div class="steps" data-check-bounds><span>Every frame, intentional.</span></div></section>
+ <section id="end" data-shot data-start="5.5" data-duration="2.5"><div class="label" data-check-bounds>Your next film</div><h1 data-check-bounds>Motion<br>Video.</h1><div class="note" data-check-bounds>Built in code. Ready to share.</div></section>
+ <canvas id="gl"></canvas>
+</div>
+<script type="module">
+import * as THREE from 'three';
+const VIDEO = window.VIDEO = {width:1920,height:1080,fps:30,duration:8,audio:true};
+const clamp=x=>Math.max(0,Math.min(1,x)),enter=x=>1-(1-clamp(x))**3;
+const frag=`precision highp float;
+varying vec2 vUv;uniform vec2 res;uniform float time;uniform vec3 heights;uniform float spread;uniform float blob;
+float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
+float capsule(vec3 p,float x,float h){p-=vec3(x,0.,0.);p.y=max(abs(p.y)-h,0.);return length(p)-.038;}
+float sdf(vec3 p){float d=capsule(p,.48-spread,heights.x);d=smin(d,capsule(p,.48,heights.y),.055);d=smin(d,capsule(p,.48+spread,heights.z),.055);if(blob>.002)d=smin(d,length(p-vec3(.48,0.,0.))-blob,.08);return d;}
+vec3 env(vec3 r){vec3 c=mix(vec3(.09,.07,.04),vec3(.3,.25,.18),smoothstep(-1.,1.,r.y));c+=vec3(.95)*smoothstep(.2,1.,-r.z);c+=vec3(4.)*smoothstep(.93,.975,dot(r,normalize(vec3(-.6,.45,-.66))));c+=vec3(2.)*smoothstep(.85,.95,dot(r,normalize(vec3(.75,.2,-.6))));return c;}
+void main(){vec2 uv=(vUv*res-.5*res)/res.y;vec3 ro=vec3(uv,-1.),rd=vec3(0.,0.,1.);float t=0.;bool hit=false;
+for(int i=0;i<90;i++){float d=sdf(ro+rd*t);if(d<.0004){hit=true;break;}t+=d*.8;if(t>2.)break;}if(!hit){gl_FragColor=vec4(0.);return;}
+vec3 p=ro+rd*t;vec2 e=vec2(.0006,0.);vec3 n=normalize(vec3(sdf(p+e.xyy)-sdf(p-e.xyy),sdf(p+e.yxy)-sdf(p-e.yxy),sdf(p+e.yyx)-sdf(p-e.yyx)));
+vec3 base=vec3(.93,.67,.29);vec3 f=base+(1.-base)*pow(1.-max(dot(n,-rd),0.),5.)*.6;vec3 c=env(reflect(rd,n))*f;c=c/(1.+max(c-1.,0.));gl_FragColor=vec4(pow(clamp(c,0.,1.),vec3(1./2.2)),1.);}`;
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setSize(VIDEO.width,VIDEO.height,false);renderer.setClearColor(0,0);
+const uniforms={res:{value:new THREE.Vector2(VIDEO.width,VIDEO.height)},time:{value:0},heights:{value:new THREE.Vector3()},spread:{value:0},blob:{value:0}};
+const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms,fragmentShader:frag,vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}'})));
+window.renderAt=t=>{
+ document.querySelectorAll('[data-shot]').forEach(el=>{
+  const u=t-(+el.dataset.start),on=u>=0&&u<(+el.dataset.duration);el.style.visibility=on?'visible':'hidden';
+  const a=el.id==='hook'?1:enter(u/.55);
+  el.querySelector('h1').style.opacity=a;el.querySelector('h1').style.transform=`translateY(${(1-a)*35}px)`;
+  const copy=el.querySelector('.note,.steps');copy.style.opacity=el.id==='hook'?1:enter((u-.5)/.45);
+ });
+ const active=t<2.5||t>=5.5;renderer.domElement.style.visibility=active?'visible':'hidden';
+ if(active){const u=t<2.5?t:t-5.5,grow=enter((u+.3)/1);uniforms.time.value=t;uniforms.spread.value=.115*grow;
+  uniforms.heights.value.set(...[.13,.22,.08].map((v,i)=>v*(.73+.27*Math.sin(t*5+i*1.7))));
+  const radius=.13*(1-enter((u-.15)/.9));uniforms.blob.value=radius<1/VIDEO.height?0:radius;renderer.render(scene,camera);}
+};
+window.renderAudio=async()=>{
+ const sr=48000,ctx=new OfflineAudioContext(2,sr*VIDEO.duration,sr),master=ctx.createGain();master.gain.value=.7;master.connect(ctx.destination);
+ const note=(t,f,amp=.15,decay=.6)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+decay);o.connect(g).connect(master);o.start(t);o.stop(t+decay+.02);};
+ for(let t=0;t<7;t+=.5)note(t,[220,261.626,329.628,261.626][Math.round(t*2)%4],.035,.45);
+ [0,2.5,5.5].forEach(t=>{note(t+1/VIDEO.fps,110,.2,.35);note(t+1/VIDEO.fps,659.25,.12,.8);});
+ [440,554.37,659.25].forEach(f=>note(6.5,f,.065,1.3));
+ master.gain.setValueAtTime(.7,7.5);master.gain.linearRampToValueAtTime(0,7.99);
+ const buf=await ctx.startRendering(),n=buf.length,v=new DataView(new ArrayBuffer(44+n*4)),put=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+ put(0,'RIFF');v.setUint32(4,36+n*4,true);put(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,2,true);v.setUint32(24,sr,true);v.setUint32(28,sr*4,true);v.setUint16(32,4,true);v.setUint16(34,16,true);put(36,'data');v.setUint32(40,n*4,true);
+ for(let i=0;i<n;i++)for(let c=0;c<2;c++)v.setInt16(44+i*4+c*2,Math.max(-1,Math.min(1,buf.getChannelData(c)[i]))*32767,true);
+ const bytes=new Uint8Array(v.buffer);let binary='';for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(binary);
+};
+await document.fonts.ready;await Promise.all([...document.images].map(i=>i.decode()));renderAt(0);window.__ready=true;
+if(!new URLSearchParams(location.search).has('render')){const start=performance.now();function loop(){renderAt(((performance.now()-start)/1000)%VIDEO.duration);requestAnimationFrame(loop);}loop();}
+</script></body></html>
