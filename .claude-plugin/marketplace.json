@@ -23,6 +23,11 @@
       "source": "./plugins/motion-video",
       "description": "Code-rendered motion films with Three.js, deterministic Playwright rendering, local Web Audio and verified ffmpeg export.",
       "license": "MIT"
+    },
+    {
+      "name": "pre-pr-qa-toolkit",
+      "source": "./plugins/pre-pr-qa-toolkit",
+      "description": "Browser QA recordings and audits, PR review triage and stacked splits, UI/UX and frontend guidance, prompt authoring and CityCatalyst demos."
     }
   ]
 }

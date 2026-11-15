@@ -32,13 +32,21 @@ For metal, work on lighting and material colour together. A dark environment mak
 
 Clamp a disappearing SDF object's radius fully to zero below the pixel threshold; a near-zero sphere can leave a bright pixel. Keep antialiasing and numeric tolerances proportionate to the output resolution. Verify the actual renderer on the machine; never claim a particular GPU or timing from a historical run.
 
+## Linux renderer and speed
+
+`render.mjs` launches system Chromium and picks WebGL in this order: ANGLE Vulkan, ANGLE GL/EGL, SwiftShader. Pin one with `MOTION_GPU=vulkan|gl-egl|swiftshader`. It prints the chosen renderer and records it in `render.json`. On integrated Intel/AMD graphics with Mesa, Vulkan is usually fastest. On NVIDIA with the proprietary driver, `gl-egl` may be the reliable choice.
+
+Frames render in parallel: `MOTION_WORKERS` headless browsers (default min(8, cores/2)) each take the next frame index. This is safe only because `renderAt(t)` is pure. A composition that keeps state between frames will break here first. Hardware WebGL can differ by about one least significant bit per pixel, depending on what the page rendered before (PSNR around 110 dB). If you need bit-exact repeatability across machines or runs, use `MOTION_GPU=swiftshader`.
+
+Final export keeps x264 `-preset medium -crf 18`. For a quick draft, set `FFMPEG_X264_PRESET=veryfast`, then return to the default for the delivered file.
+
 ## Sound
 
 `OfflineAudioContext` provides a finite local score with no microphone or autoplay permission. Seed synthesized noise, schedule notes by absolute time and render a stereo 48 kHz PCM WAV. Keep attacks explicit; a compressor or a loud bed can hide a pluck even when its event exists. Do not fix a masked cue just by making the entire mix louder.
 
 Use a coherent musical or tonal bed when the film needs one. Put action sounds on the action; a one-frame sound offset can be used deliberately. Leave a short tail and a final fade. Respect an existing silent brief. Voice synthesis and external music are separate choices; this workflow grants no paid API access.
 
-The supplied ffmpeg export uses H.264 High, yuv420p, CRF 18, faststart and AAC stereo. Its audio chain is loudness normalization, resampling and a limiter with automatic gain compensation disabled. This provides headroom but **must be measured after AAC encoding**, since codec reconstruction can change peaks. Verification fails if the true peak exceeds −1 dBTP or a requested soundtrack is effectively silent. Adjust the chain when the requested delivery spec differs.
+The supplied ffmpeg export uses H.264 High, yuv420p, CRF 18 (preset `medium`, overridable with `FFMPEG_X264_PRESET`), all cores, faststart and AAC stereo. Its audio chain is loudness normalization, resampling and a limiter with automatic gain compensation disabled. This provides headroom but **must be measured after AAC encoding**, since codec reconstruction can change peaks. Verification fails if the true peak exceeds −1 dBTP or a requested soundtrack is effectively silent. Adjust the chain when the requested delivery spec differs.
 
 ## What the tools prove
 

@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 
@@ -84,9 +85,10 @@ def main() -> int:
         number = pr["number"]
         pr_author = (pr.get("author") or {}).get("login") or ""
 
-        issue_comments = gh_api_json(repo, f"issues/{number}/comments")
-        reviews = gh_api_json(repo, f"pulls/{number}/reviews")
-        review_comments = gh_api_json(repo, f"pulls/{number}/comments")
+        # The three endpoints are independent; fetch them concurrently.
+        endpoints = [f"issues/{number}/comments", f"pulls/{number}/reviews", f"pulls/{number}/comments"]
+        with ThreadPoolExecutor(max_workers=len(endpoints)) as pool:
+            issue_comments, reviews, review_comments = pool.map(lambda e: gh_api_json(repo, e), endpoints)
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

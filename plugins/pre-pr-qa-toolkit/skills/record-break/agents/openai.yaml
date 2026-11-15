@@ -1,0 +1,4 @@
+interface:
+  display_name: "Record Break"
+  short_description: "Record adversarial attempts to break a flow"
+  default_prompt: "Use $record-break to try to break this browser flow on video and report what held and what failed."

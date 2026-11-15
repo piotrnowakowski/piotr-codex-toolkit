@@ -35,7 +35,7 @@ function mediaEvidence(mediaPath) {
       "default=noprint_wrappers=1:nokey=1",
       mediaPath,
     ],
-    { encoding: "utf8", windowsHide: true },
+    { encoding: "utf8" },
   );
   if (!probe.error) {
     evidence.ffprobeAvailable = true;

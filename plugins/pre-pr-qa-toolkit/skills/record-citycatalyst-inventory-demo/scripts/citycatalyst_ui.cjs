@@ -298,7 +298,7 @@ async function ensureAvailableInventoryYear({
     }
     if (!allowVerifiedDemoCleanup) {
       throw new Error(
-        `${error.message}. One matching demo-owned inventory was found, but cleanup requires explicit approval. Review ${cleanupProposalPath || recyclable.proof} and rerun with -AllowVerifiedDemoCleanup.`,
+        `${error.message}. One matching demo-owned inventory was found, but cleanup requires explicit approval. Review ${cleanupProposalPath || recyclable.proof} and rerun with --allow-verified-demo-cleanup.`,
       );
     }
 

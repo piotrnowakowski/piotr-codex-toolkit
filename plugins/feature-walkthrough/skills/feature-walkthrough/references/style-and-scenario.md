@@ -49,22 +49,26 @@ module.exports = async ({ page, guide, rehearsal }) => {
 };
 ```
 
-## Windows commands
+## Linux commands (Omarchy, Fedora)
 
-Use discovered paths, PowerShell 7 non-login, UTF-8 and a new capture directory per take. Example:
+Prerequisites: Omarchy `sudo pacman -S --needed ffmpeg chromium nodejs npm ttf-liberation` (or Node via `mise use -g node@lts`); Fedora `sudo dnf install chromium nodejs liberation-sans-fonts` plus RPM Fusion FFmpeg `sudo dnf swap ffmpeg-free ffmpeg --allowerasing` (`ffmpeg-free` lacks libx264). Both FFmpeg builds include libass for the `subtitles` filter. `Arial` in captions resolves to Liberation Sans through fontconfig.
 
-```powershell
-$skillDir = '<installed feature-walkthrough skill directory>'
-$runDir = 'C:\path\to\repo\output\browser-demo-recording\feature-20261115-120000'
-$env:PLAYWRIGHT_MODULE = 'C:\discovered\tools\node_modules\playwright'
-$env:TARGET_URL = 'http://localhost:5173'
-node "$skillDir\scripts\record.cjs" "$runDir\scenario.cjs" "$runDir\capture"
+Use discovered paths and a new capture directory per take. Example:
+
+```bash
+skill_dir='<installed feature-walkthrough skill directory>'
+run_dir="$PWD/output/browser-demo-recording/feature-$(date +%Y%m%d-%H%M%S)"
+pw_cache="${XDG_CACHE_HOME:-$HOME/.cache}/agent-tools/playwright"
+# Only when neither the workspace nor the cache has Playwright:
+[ -d "$pw_cache/node_modules/playwright" ] || PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --prefix "$pw_cache" playwright
+export TARGET_URL='http://localhost:5173'
+node "$skill_dir/scripts/record.cjs" "$run_dir/scenario.cjs" "$run_dir/capture"
 # Check exit status/events. Failed recordings are partial evidence.
-node "$skillDir\scripts\render.cjs" "$runDir\capture\events.json"
-ffprobe -v error -show_entries format=duration,size:stream=width,height -of json "$runDir\capture\walkthrough.mp4"
-ffmpeg -v error -i "$runDir\capture\walkthrough.mp4" -f null -
+node "$skill_dir/scripts/render.cjs" "$run_dir/capture/events.json"
+ffprobe -v error -show_entries format=duration,size:stream=width,height -of json "$run_dir/capture/walkthrough.mp4"
+ffmpeg -v error -threads 0 -i "$run_dir/capture/walkthrough.mp4" -f null -
 ```
 
-Optional: `GUIDE_SPEED` (default 1.15), `GUIDE_HEADED=1`, `GUIDE_REHEARSAL=1`. Rehearsal does not technically block network calls; author the stopping point deliberately and label its metadata as rehearsal.
+Optional: `GUIDE_SPEED` (default 1.15), `GUIDE_HEADED=1` (adds `--ozone-platform-hint=auto` under Wayland/Hyprland), `GUIDE_REHEARSAL=1`, `PLAYWRIGHT_CHROMIUM_EXECUTABLE`, `FFMPEG_X264_PRESET`. Headless recording needs no display and never touches the Hyprland desktop. Rehearsal does not technically block network calls; author the stopping point deliberately and label its metadata as rehearsal.
 
 For multi_doc_query follow current AGENTS.md: frontend port 5173, ask before stopping another app using that port, and AUTH_REQUIRED=false only in the local main backend/converter when auth is not under test. Do not apply this app's settings to unrelated projects.

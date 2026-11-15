@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 UI/UX Pro Max Search - BM25 search engine for UI/UX style guides
-Usage: python search.py "<query>" [--domain <domain>] [--stack <stack>] [--max-results 3]
-       python search.py "<query>" --design-system [-p "Project Name"]
-       python search.py "<query>" --design-system --persist [-p "Project Name"] --output-dir "<project-root>" [--page "dashboard"]
-       python search.py "<query>" --design-system --variance 8 --motion 9 --density 7
+Usage: python3 search.py "<query>" [--domain <domain>] [--stack <stack>] [--max-results 3]
+       python3 search.py "<query>" --design-system [-p "Project Name"]
+       python3 search.py "<query>" --design-system --persist [-p "Project Name"] --output-dir "<project-root>" [--page "dashboard"]
+       python3 search.py "<query>" --design-system --variance 8 --motion 9 --density 7
 
 Domains: style, color, chart, landing, product, ux, typography, google-fonts, icons, gsap, react, web
 Stacks: react, nextjs, vue, svelte, astro, swiftui, react-native, flutter, nuxtjs, nuxt-ui,
@@ -32,7 +32,7 @@ import io
 from core import CSV_CONFIG, AVAILABLE_STACKS, MAX_RESULTS, UNTRUNCATED_COLS, search, search_stack
 from design_system import generate_design_system
 
-# Force UTF-8 for stdout/stderr to handle emojis on Windows (cp1252 default)
+# Force UTF-8 for stdout/stderr when the locale is not UTF-8 (e.g. LANG=C)
 if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 if sys.stderr.encoding and sys.stderr.encoding.lower() != 'utf-8':

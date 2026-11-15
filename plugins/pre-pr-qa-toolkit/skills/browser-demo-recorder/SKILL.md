@@ -36,33 +36,33 @@ Treat the recorder's structured `ok`, `error`, artifact paths, steps, observatio
 
 ## Recorder commands
 
+`<skill-dir>` is the directory containing this SKILL.md.
+
 Interactive scenario:
 
-```powershell
-$repoRoot = git rev-parse --show-toplevel
-$recordDir = Join-Path $repoRoot "output/browser-demo-recording"
-$recorderScript = Join-Path "<installed browser-demo-recorder skill directory>" "scripts\record_demo.cjs"
+```bash
+repo_root=$(git rev-parse --show-toplevel)
+record_dir="$repo_root/output/browser-demo-recording"
+recorder="<skill-dir>/scripts/record_demo.cjs"
 
-node $recorderScript `
-  --script "$recordDir\scenario.cjs" `
-  --output-dir $recordDir `
-  --name app-demo `
+node "$recorder" \
+  --script "$record_dir/scenario.cjs" \
+  --output-dir "$record_dir" \
+  --name app-demo \
   --headed
 ```
 
 Simple page:
 
-```powershell
-$repoRoot = git rev-parse --show-toplevel
-$recordDir = Join-Path $repoRoot "output/browser-demo-recording"
-$recorderScript = Join-Path "<installed browser-demo-recorder skill directory>" "scripts\record_demo.cjs"
-
-node $recorderScript `
-  --url http://localhost:3000 `
-  --output-dir $recordDir `
-  --name app-home `
+```bash
+node "$recorder" \
+  --url http://localhost:3000 \
+  --output-dir "$record_dir" \
+  --name app-home \
   --headed
 ```
+
+Headed mode works on Wayland (Omarchy/Hyprland) and X11; the recorder passes `--ozone-platform-hint=auto`. Without a display (SSH, CI) use headless mode.
 
 ## Scenario contract
 
@@ -172,16 +172,26 @@ At minimum, every report must state:
 
 ## Dependencies
 
-The recorder resolves Playwright from the workspace where it runs. If unavailable:
+The recorder resolves Playwright in this order: the workspace where it runs, `PLAYWRIGHT_MODULE` (path to a `playwright` module directory), then a shared cached tools directory `${XDG_CACHE_HOME:-$HOME/.cache}/agent-tools/playwright`. If none exists, install once into the shared cache instead of the product repository:
 
-```powershell
-npm install -D playwright
-npx playwright install chromium
+```bash
+tools="${XDG_CACHE_HOME:-$HOME/.cache}/agent-tools/playwright"
+# Skip the bundled browser download when a system Chromium exists.
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --prefix "$tools" playwright
+# Only without a system Chromium:
+# npx --prefix "$tools" playwright install chromium
 ```
 
-Do not modify repository dependencies automatically when an existing Playwright installation or disposable recording environment can be used.
+The recorder launches a system Chromium when available: `PLAYWRIGHT_CHROMIUM_EXECUTABLE`, then `CHROME_PATH`, then `/usr/bin/chromium` (Omarchy/Arch), `/usr/bin/chromium-browser` (Fedora), `/usr/bin/google-chrome-stable`, `/usr/bin/google-chrome`; otherwise Playwright's bundled browser.
 
-Use FFmpeg when available to produce MP4. If FFmpeg is unavailable or conversion fails, verify and return the WebM.
+Do not modify repository dependencies automatically when an existing Playwright installation or the shared tools directory can be used.
+
+Missing system packages:
+
+- Omarchy/Arch: `sudo pacman -S --needed ffmpeg chromium nodejs npm` (Node via `mise use -g node@lts` is the Omarchy default).
+- Fedora: `sudo dnf install chromium nodejs`, and FFmpeg from RPM Fusion with `sudo dnf swap ffmpeg-free ffmpeg --allowerasing` (`ffmpeg-free` lacks libx264).
+
+Use FFmpeg when available to produce MP4 (`libx264 -preset veryfast -crf 20`; override the preset with `FFMPEG_X264_PRESET`). If FFmpeg is unavailable or conversion fails, verify and return the WebM.
 
 ## Public websites
 
@@ -195,14 +205,14 @@ Use headed mode by default for public websites. Use headless mode for local or C
 
 Check duration and size:
 
-```powershell
-ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 .\output\browser-demo-recording\app-demo.mp4
+```bash
+ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 output/browser-demo-recording/app-demo.mp4
 ```
 
 Extract and inspect a representative frame:
 
-```powershell
-ffmpeg -y -ss 00:00:05 -i .\output\browser-demo-recording\app-demo.mp4 -frames:v 1 -update 1 .\output\browser-demo-recording\preview.png
+```bash
+ffmpeg -v error -y -ss 00:00:05 -i output/browser-demo-recording/app-demo.mp4 -frames:v 1 -update 1 output/browser-demo-recording/preview.png
 ```
 
 Confirm:
@@ -216,10 +226,10 @@ Confirm:
 
 ## Delivery
 
-Embed the verified video using an absolute forward-slash path:
+Embed the verified video using an absolute path:
 
 ```markdown
-![Browser demo](C:/absolute/path/to/output/browser-demo-recording/app-demo.mp4)
+![Browser demo](/absolute/path/to/output/browser-demo-recording/app-demo.mp4)
 ```
 
 Also provide direct paths to the video and saved report. If the renderer cannot display a path containing spaces, copy only the verified final video to a no-space export directory and embed that copy.

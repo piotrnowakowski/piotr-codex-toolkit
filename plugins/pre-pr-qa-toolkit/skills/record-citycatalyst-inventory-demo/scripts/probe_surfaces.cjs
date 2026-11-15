@@ -25,8 +25,47 @@ const profile = loadProfile(
   process.env.DEMO_PROFILE_PATH ||
     path.join(__dirname, "..", "assets", "profiles", "krakow.json"),
 );
-const appRequire = createRequire(path.join(repoRoot, "app", "package.json"));
-const { chromium } = appRequire("playwright");
+const fs = require("node:fs");
+const os = require("node:os");
+
+// App checkout Playwright, then PLAYWRIGHT_MODULE, then the shared tools cache.
+function loadPlaywright() {
+  const cacheHome = process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+  const sharedToolsDir = path.join(cacheHome, "agent-tools", "playwright");
+  const attempts = [
+    () => createRequire(path.join(repoRoot, "app", "package.json"))("playwright"),
+    () =>
+      process.env.PLAYWRIGHT_MODULE
+        ? require(path.resolve(process.env.PLAYWRIGHT_MODULE))
+        : null,
+    () => createRequire(path.join(sharedToolsDir, "package.json"))("playwright"),
+  ];
+  for (const attempt of attempts) {
+    try {
+      const mod = attempt();
+      if (mod) return mod;
+    } catch {}
+  }
+  throw new Error(
+    `Cannot load Playwright from the app checkout, PLAYWRIGHT_MODULE, or ${sharedToolsDir}.`,
+  );
+}
+
+// Prefer a system Chromium (Omarchy/Arch, Fedora) to skip Playwright browser downloads.
+function resolveChromiumExecutable() {
+  return (
+    [
+      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+      process.env.CHROME_PATH,
+      "/usr/bin/chromium",
+      "/usr/bin/chromium-browser",
+      "/usr/bin/google-chrome-stable",
+      "/usr/bin/google-chrome",
+    ].find((file) => file && fs.existsSync(file)) || undefined
+  );
+}
+
+const { chromium } = loadPlaywright();
 
 async function probe(name, action, result) {
   const startedAt = Date.now();
@@ -62,7 +101,10 @@ async function main() {
 
   let browser = null;
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: resolveChromiumExecutable(),
+    });
     const context = await browser.newContext({ acceptDownloads: true });
     const page = await context.newPage();
     page.setDefaultTimeout(15_000);

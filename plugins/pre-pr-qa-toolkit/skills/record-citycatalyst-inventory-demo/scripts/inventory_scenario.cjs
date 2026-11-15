@@ -545,7 +545,7 @@ module.exports = async ({ page, context, step, highlight, wait }) => {
       mark("csv", {
         status: "skipped",
         reason:
-          "CSV is outside the requested live-demo path. Use -IncludeCsv to add it.",
+          "CSV is outside the requested live-demo path. Use --include-csv to add it.",
       });
     }
   } catch (error) {

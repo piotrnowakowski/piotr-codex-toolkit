@@ -66,7 +66,8 @@ function main() {
   fs.writeFileSync(path.join(out, 'timeline.json'), JSON.stringify(captions, null, 2) + '\n');
   fs.writeFileSync(path.join(out, 'timeline.txt'), captions.map(c => `${mmss(c.t)}  ${c.label} | ${c.text}`).join('\n') + '\n', 'utf8');
   execFileSync('ffmpeg', ['-v', 'error', '-n', '-i', take.video, '-filter_complex', filters.join(';'), '-map', '[out]', '-an', '-r', '25',
-    '-c:v', 'libx264', '-crf', '23', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', final], { cwd: out, stdio: 'inherit' });
+    '-c:v', 'libx264', '-crf', '20', '-preset', process.env.FFMPEG_X264_PRESET || 'veryfast', '-threads', '0',
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', final], { cwd: out, stdio: 'inherit' });
   console.log(JSON.stringify({ final, seconds: end, sourceOk: take.ok, rehearsal: take.rehearsal, segments: segments.length }));
 }
 try { main(); } catch (e) { console.error(e.message); process.exitCode = 1; }

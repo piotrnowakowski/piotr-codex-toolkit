@@ -316,7 +316,7 @@ async function main() {
         "--since",
         "2026-09-01T09:59:59.000Z",
       ],
-      { encoding: "utf8", windowsHide: true },
+      { encoding: "utf8" },
     );
     if (logCollector.status !== 0) {
       throw new Error(`Runtime log collector failed: ${logCollector.stderr}`);
@@ -357,7 +357,6 @@ async function main() {
           TAKE_NAME: "empty-artifact-test",
         },
         encoding: "utf8",
-        windowsHide: true,
       },
     );
     if (verifier.status !== 2) {
@@ -394,7 +393,7 @@ async function main() {
         "-y",
         failedScenarioMedia,
       ],
-      { encoding: "utf8", windowsHide: true },
+      { encoding: "utf8" },
     );
     fs.writeFileSync(
       path.join(failedScenarioDir, "failed-scenario.json"),
@@ -419,7 +418,7 @@ async function main() {
         "--ca-unavailable-reason",
         "Self-test has no CA process.",
       ],
-      { encoding: "utf8", windowsHide: true },
+      { encoding: "utf8" },
     );
     if (unavailableLogCollector.status !== 0) {
       throw new Error(
@@ -438,7 +437,6 @@ async function main() {
             TAKE_NAME: "failed-scenario",
           },
           encoding: "utf8",
-          windowsHide: true,
         },
       );
       if (failedScenarioVerifier.status !== 2) {
@@ -467,6 +465,19 @@ async function main() {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 
+  for (const launcher of ["run_demo.sh", "inspect_current_setup.sh"]) {
+    const launcherPath = path.join(__dirname, launcher);
+    fs.accessSync(launcherPath, fs.constants.X_OK);
+  }
+  const windowsLaunchers = fs
+    .readdirSync(__dirname)
+    .filter((name) => name.endsWith(".ps1"));
+  if (windowsLaunchers.length > 0) {
+    throw new Error(
+      `Linux package still contains PowerShell launchers: ${windowsLaunchers.join(", ")}`,
+    );
+  }
+
   process.stdout.write(
     `${JSON.stringify({
       status: "passed",
@@ -482,6 +493,7 @@ async function main() {
       csvRouteMatcher: "passed",
       csvValidation: "passed",
       verifierFailurePath: "passed",
+      linuxLaunchers: "passed",
     })}\n`,
   );
 }

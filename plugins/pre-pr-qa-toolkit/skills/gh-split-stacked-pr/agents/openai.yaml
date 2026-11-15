@@ -1,0 +1,4 @@
+interface:
+  display_name: "Split Into Stacked PRs"
+  short_description: "Split a large PR into a native stack"
+  default_prompt: "Use $gh-split-stacked-pr to split this PR into ordered stacked PRs while preserving its code and discussion."

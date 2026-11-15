@@ -14,19 +14,18 @@ Read the brief, source composition and latest review. Keep delivered versions in
 
 For a new project, run the initializer using this skill's real location:
 
-```powershell
+```bash
 node "<skill-dir>/scripts/init-project.mjs" "<new-project-dir>"
 ```
 
 In the generated project:
 
-```powershell
-npm install
-npx playwright install chromium
+```bash
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --prefer-offline --no-audit --no-fund
 node render.mjs review
 ```
 
-Requires Node 20+, ffmpeg and ffprobe on PATH. The starter pins the Three.js and Playwright versions used by the original workflow. Inspect existing dependencies before replacing them. The initializer refuses a nonempty destination.
+Linux only (Omarchy, Fedora). Requires Node 20+, Chromium, ffmpeg with libx264 and ffprobe on PATH: Omarchy `sudo pacman -S --needed nodejs npm chromium ffmpeg`; Fedora `sudo dnf install nodejs chromium` plus RPM Fusion `sudo dnf swap ffmpeg-free ffmpeg --allowerasing` (`ffmpeg-free` has no libx264). The renderer uses system Chromium (`PLAYWRIGHT_CHROMIUM_EXECUTABLE`, `CHROME_PATH`, `/usr/bin/chromium`, `/usr/bin/chromium-browser`, then Google Chrome), so no Playwright browser download is needed; without one, run `npx playwright install chromium`. The starter pins the Three.js and Playwright versions used by the original workflow. Inspect existing dependencies before replacing them. The initializer refuses a nonempty destination.
 
 ## Author the film
 
@@ -52,7 +51,7 @@ Keep a single time source. Derive typing, counters, cursor positions, springs, m
 
 ## Review, render and deliver
 
-```powershell
+```bash
 node render.mjs still 2.5
 node render.mjs review
 node render.mjs render
@@ -60,7 +59,7 @@ node render.mjs export
 node render.mjs verify
 ```
 
-`node render.mjs all` runs the full pipeline. `review` checks ids, scene cuts, out-of-order seek determinism and marked text bounds/overlaps, then writes a contact sheet and individual samples. `render` writes frames and an optional WAV. `export` rejects a changed source tree or an incomplete frame set and verifies the resulting media. Frames are kept in a source-hash folder so changed projects cannot silently mix old and new frames.
+`node render.mjs all` runs the full pipeline. `review` checks ids, scene cuts, out-of-order seek determinism and marked text bounds/overlaps, then writes a contact sheet and individual samples. `render` writes frames and an optional WAV, using hardware WebGL (ANGLE Vulkan, then GL/EGL, then SwiftShader) and one headless Chromium per worker (`MOTION_WORKERS`, default min(8, cores/2)). Headless rendering needs no display and never touches the Hyprland desktop. `export` rejects a changed source tree or an incomplete frame set and verifies the resulting media. Frames are kept in a source-hash folder so changed projects cannot silently mix old and new frames.
 
 Open the contact sheet and representative full-size samples. Inspect early, middle and final states, cuts, the busiest UI shot, phone readability and the ending hold. Automated bounds do not prove that a screenshot crop contains every word. Fix the composition, then regenerate affected review evidence and render the current source.
 

@@ -4,7 +4,7 @@
 Data integrity guardrail for ui-ux-pro-max. Stdlib-only, no pytest dependency,
 so it can run as a standalone pre-publish/CI check:
 
-    python validate_data.py
+    python3 validate_data.py
 
 Checks, per configured domain/stack CSV:
   - file exists

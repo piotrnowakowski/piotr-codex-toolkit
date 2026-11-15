@@ -16,4 +16,4 @@ mkdirSync(target, { recursive: true });
 cpSync(join(skill, 'assets', 'starter'), target, { recursive: true });
 cpSync(join(skill, 'scripts', 'render.mjs'), join(target, 'render.mjs'));
 writeFileSync(join(target, '.gitignore'), 'node_modules/\nout/\n', 'utf8');
-console.log(`Created ${target}\nRun npm install, npx playwright install chromium, then node render.mjs review in that directory.`);
+console.log(`Created ${target}\nIn that directory run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --prefer-offline --no-audit --no-fund && node render.mjs review\n(System Chromium is used; without it, also run npx playwright install chromium.)`);

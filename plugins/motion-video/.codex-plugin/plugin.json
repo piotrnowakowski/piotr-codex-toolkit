@@ -1,6 +1,6 @@
 {
   "name": "motion-video",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Code-rendered motion films with Three.js, deterministic frame seeking, Playwright, local Web Audio and verified ffmpeg export.",
   "author": { "name": "Piotr Nowakowski", "url": "https://github.com/piotrnowakowski" },
   "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit/tree/main/plugins/motion-video",

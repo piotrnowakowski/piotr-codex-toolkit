@@ -1,19 +1,19 @@
 {
   "name": "pre-pr-qa-toolkit",
-  "version": "0.3.0",
-  "description": "Verified browser recordings, GitHub-review triage, UI/UX guidance, OEF MCP workflows, and safe CityCatalyst demos with CC/CA error evidence.",
+  "version": "0.4.0",
+  "description": "Verified browser recordings, adversarial break tests, GitHub-review triage and stacked-PR splits, UI/UX and frontend guidance, prompt authoring, OEF MCP workflows, and CityCatalyst demos and dependency checks. Linux-first (Omarchy, Fedora).",
   "author": {
     "name": "Piotr Nowakowski",
     "url": "https://github.com/piotrnowakowski"
   },
   "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
   "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
-  "keywords": ["browser-testing", "pre-pr", "qa", "playwright", "github", "ui-ux", "oef", "citycatalyst"],
+  "keywords": ["browser-testing", "pre-pr", "qa", "playwright", "github", "ui-ux", "frontend", "prompts", "oef", "citycatalyst", "linux"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Pre-PR QA Toolkit",
     "shortDescription": "Record and audit real browser flows before a PR.",
-    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, inspect GitHub review feedback, apply data-backed UI/UX guidance, route current OEF work through the connected OEF MCP app, run critical user-centered feature audits, add an optional independent Expect pass, and record the safe CityCatalyst inventory demo with CC and Climate Advisor runtime-error evidence.",
+    "longDescription": "Record verified browser walkthroughs with timecoded evidence and structured reports, inspect GitHub review feedback, apply data-backed UI/UX guidance, route current OEF work through the connected OEF MCP app, run critical user-centered feature audits, add an optional independent Expect pass, record the safe CityCatalyst inventory demo with CC and Climate Advisor runtime-error evidence, test deployed CityCatalyst features, verify Climate Advisor dependency branches, try to break flows on video, split large PRs into native stacks, build strong frontends and author structured prompts.",
     "developerName": "Piotr Nowakowski",
     "category": "Developer Tools",
     "capabilities": ["Browser testing", "Video recording", "UX audit", "GitHub review triage", "OEF MCP workflows"],

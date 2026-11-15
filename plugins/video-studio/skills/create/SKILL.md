@@ -67,7 +67,7 @@ Follow the "Tier B pipeline mechanics" in `toolchain.md`: style and character sh
 
 ## 7. Final render and delivery
 
-- **p5:** `node render.mjs --frames=0:<dur> --workers=<n>` then `--encode --out=out/<slug>.mp4`. **HyperFrames/hybrid:** `npx hyperframes render` in the HyperFrames project.
+- **p5:** `node render.mjs --frames=0:<dur> --workers=$(( $(nproc) / 2 ))` then `--encode --out=out/<slug>.mp4`. **HyperFrames/hybrid:** `npx hyperframes render` in the HyperFrames project.
 - **Audio:** the original song untouched, plus the SFX bus mixed low. Or a silent track if `audio: none`. Mux last with ffmpeg if the engine didn't.
 - **Verify:** `ffprobe` the duration, resolution, fps and audio stream. Then make a final contact sheet of the whole video.
 - **Cutdowns** as the brief specifies (vertical crops or re-compositions, each opening on its own hook and ending on a clean loop point).
