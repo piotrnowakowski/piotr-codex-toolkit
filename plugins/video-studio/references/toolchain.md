@@ -6,9 +6,9 @@ Use this for (a) the tools paragraph inside the brief and (b) the "Before you pa
 
 | Engine | Start from | Needs | Account? |
 |---|---|---|---|
-| p5.brush (painted) | `git clone https://github.com/JohnHeibel/ClaudeAnimationBase` | Node 20+, Chrome, ffmpeg | No |
+| p5.brush (painted) | `git clone https://github.com/JohnHeibel/ClaudeAnimationBase` | Node 20+, Chromium/Chrome, ffmpeg | No |
 | HyperFrames (HTML/GSAP) | `npx hyperframes init my-video` + HyperFrames agent plugin | Node **22+**, ffmpeg (Chrome via Puppeteer) | No |
-| Hybrid | ClaudeAnimationBase clone as root; `npx hyperframes init cut` inside it for the final cut | Node **22+**, Chrome, ffmpeg | No |
+| Hybrid | ClaudeAnimationBase clone as root; `npx hyperframes init cut` inside it for the final cut | Node **22+**, Chromium/Chrome, ffmpeg | No |
 
 Free SFX (when there's no ElevenLabs): made in code (Web Audio / Tone.js: whooshes from filtered noise, clicks, risers), or CC0 sounds from https://pixabay.com/sound-effects/ and https://freesound.org (check each file's licence). With HyperFrames, `/media-use` can source SFX too.
 
@@ -43,32 +43,37 @@ mkdir -p assets refs out
 Render commands (ClaudeAnimationBase):
 ```bash
 node render.mjs --clip --out=out/video.mp4   # demo clip
-# open studio.html in Chrome to scrub; ?loop=emotions / ?loop=views show model sheets
+# open studio.html in Chromium to scrub; ?loop=emotions / ?loop=views show model sheets
 ```
-PDoomVideo-style full render: `node render.mjs --frames=0:<dur> --workers=4`, then `node render.mjs --encode --out=out/video.mp4`.
+PDoomVideo-style full render: `node render.mjs --frames=0:<dur> --workers=$(( $(nproc) / 2 ))` (one headless Chromium per worker; half the cores leaves room for encoding), then `node render.mjs --encode --out=out/video.mp4`.
 
 ## Core installs (all tiers)
 
-| Tool | Why | Windows | macOS | Linux |
-|---|---|---|---|---|
-| Node.js ≥ 20 | Runs the renderer and the API clients | `winget install OpenJS.NodeJS.LTS` | `brew install node` | distro pkg / nvm |
-| Google Chrome | Headless frame rendering (puppeteer-core drives it) | `winget install Google.Chrome` | `brew install --cask google-chrome` | Chrome or Playwright Chromium |
-| ffmpeg (+ffprobe) | Muxing, slicing the song, pulling frames out of clips for tracing, checking sync | `winget install Gyan.FFmpeg` | `brew install ffmpeg` | `apt install ffmpeg` |
-| Git | Cloning the repos | `winget install Git.Git` | Xcode CLT | distro pkg |
-| Claude Code **or** Codex | The agent that runs the brief | `npm i -g @anthropic-ai/claude-code` / `npm i -g @openai/codex` | same | same |
+Linux only: Omarchy (Arch) and Fedora.
+
+| Tool | Why | Omarchy | Fedora |
+|---|---|---|---|
+| Node.js ≥ 20 (22+ for HyperFrames) | Runs the renderer and the API clients | `mise use -g node@lts` (or `sudo pacman -S --needed nodejs npm`) | `sudo dnf install nodejs` (or mise) |
+| Chromium | Headless frame rendering (puppeteer-core / Playwright drive it); the system build avoids browser downloads | `sudo pacman -S --needed chromium` → `/usr/bin/chromium` | `sudo dnf install chromium` → `/usr/bin/chromium-browser` |
+| ffmpeg (+ffprobe) with libx264 | Muxing, slicing the song, pulling frames out of clips for tracing, checking sync | `sudo pacman -S --needed ffmpeg` | Enable RPM Fusion, then `sudo dnf swap ffmpeg-free ffmpeg --allowerasing` (`ffmpeg-free` has no libx264) |
+| Git | Cloning the repos | `sudo pacman -S --needed git` | `sudo dnf install git` |
+| Claude Code **or** Codex | The agent that runs the brief | `npm i -g @anthropic-ai/claude-code` / `npm i -g @openai/codex` (or `mise use -g`) | same |
+
+One line: Omarchy `sudo pacman -S --needed nodejs npm chromium ffmpeg git`; Fedora `sudo dnf install nodejs chromium git && sudo dnf swap ffmpeg-free ffmpeg --allowerasing`.
 
 Notes:
 - Without a dedicated GPU, p5.brush watercolour fills render at **seconds per frame**. Tell the agent to avoid or replace those fills on integrated graphics, or to budget render time.
-- Linux headless: `render.mjs` handles `--no-sandbox`. Use `--soft-gl` with no GPU, or `--gpu-angle=gl-egl` on NVIDIA servers (`node gpu_probe.mjs <chrome>` to check).
-- Non-standard Chrome path: `--chrome=<path>` or `CHROME_PATH`.
+- Headless rendering needs no display, so it runs the same under Hyprland/Wayland and never touches the desktop. `render.mjs` handles `--no-sandbox`. Use `--soft-gl` with no GPU, or `--gpu-angle=gl-egl` on NVIDIA (`node gpu_probe.mjs <chrome>` to check).
+- Chromium path: pass `--chrome=<path>` or set `CHROME_PATH` (`/usr/bin/chromium` on Omarchy, `/usr/bin/chromium-browser` on Fedora).
+- Speed: render frames with one worker per two cores and encode drafts with `-preset veryfast`; keep a slower preset only for the final master. Run independent shot renders in parallel.
 
 ## Optional helpers
 
-| Tool | Why | Install |
-|---|---|---|
-| yt-dlp | Download reference music videos or an original video to study | `winget install yt-dlp` / `brew install yt-dlp` / `pipx install yt-dlp` |
-| Whisper (openai-whisper or faster-whisper) | Transcribe lyrics with word timestamps when no lyric sheet exists; also used to check lip-sync timing | `pipx install faster-whisper` (or `pip install openai-whisper`) |
-| aubio / librosa | Beat and onset detection when the BPM is unknown | `pip install librosa` |
+| Tool | Why | Omarchy | Fedora |
+|---|---|---|---|
+| yt-dlp | Download reference music videos or an original video to study | `sudo pacman -S yt-dlp` | `sudo dnf install yt-dlp` |
+| Whisper (faster-whisper or openai-whisper) | Transcribe lyrics with word timestamps when no lyric sheet exists; also used to check lip-sync timing | `pipx install faster-whisper` (`sudo pacman -S python-pipx`) | `pipx install faster-whisper` (`sudo dnf install pipx`) |
+| aubio / librosa | Beat and onset detection when the BPM is unknown | `sudo pacman -S aubio` or `pipx install librosa` | `sudo dnf install aubio` or `pipx install librosa` |
 
 ## Generation APIs (tiers B and C)
 
@@ -78,13 +83,11 @@ Notes:
 | **ElevenLabs** | Sound design: risers, whooshes, glitches, crowd and ambience, transition hits. Leave the song itself unchanged. | `npm i @elevenlabs/elevenlabs-js`. Docs: https://elevenlabs.io/docs (Sound Effects API). | `ELEVENLABS_API_KEY` |
 
 Set keys in the shell before starting the agent (Claude Code or Codex). Don't put them in the brief or commit them:
-```powershell
-# PowerShell (persist for the user)
-setx FAL_KEY "..." ; setx ELEVENLABS_API_KEY "..."
-```
 ```bash
-# bash/zsh
+# current shell
 export FAL_KEY=... ELEVENLABS_API_KEY=...
+# persist (bash on Omarchy/Fedora; zsh users edit ~/.zshrc): the user runs this, never the agent with a pasted key
+printf 'export FAL_KEY=...\n' >> ~/.bashrc
 ```
 You can also use a `.env` that is listed in `.gitignore`.
 

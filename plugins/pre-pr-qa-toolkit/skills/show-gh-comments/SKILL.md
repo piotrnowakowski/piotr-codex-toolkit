@@ -11,7 +11,7 @@ Use `gh` CLI as the source of truth. Do not use the GitHub connector unless `gh`
 
 1. Confirm `gh` is authenticated before fetching comments:
 
-   ```powershell
+   ```bash
    gh auth status
    ```
 
@@ -21,9 +21,11 @@ Use `gh` CLI as the source of truth. Do not use the GitHub connector unless `gh`
 
 3. From the repository root on the branch under review, run this skill's bundled script:
 
-   ```powershell
-   python C:\Users\WBW\.codex\skills\show-gh-comments\scripts\fetch_comments.py
+   ```bash
+   python3 <skill-dir>/scripts/fetch_comments.py
    ```
+
+   `<skill-dir>` is the directory containing this SKILL.md. If `gh` is missing, install it with `sudo pacman -S github-cli` (Omarchy/Arch) or `sudo dnf install gh` (Fedora).
 
    The script finds the open PR for the current branch, prints PR conversation comments, review submissions, and inline review-comment threads. Use `--pr <number-or-url>` or `--repo owner/name` only when the current branch cannot be resolved automatically.
 

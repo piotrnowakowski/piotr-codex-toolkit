@@ -16,7 +16,7 @@ You don't need to type the commands. Asking "make me a video prompt for…", "se
 - **Hybrid**: painted plates plus a kinetic-text layer
 
 ## Needs
-Node 22+, Google Chrome, ffmpeg, git. Free by default. Optional paid extras: fal.ai (`FAL_KEY`) for AI footage, ElevenLabs (`ELEVENLABS_API_KEY`) for sound design, Suno for songs.
+Linux (Omarchy or Fedora): Node 22+, Chromium (system package; Google Chrome also works), ffmpeg with libx264, git. Omarchy: `sudo pacman -S --needed nodejs npm chromium ffmpeg git`. Fedora: `sudo dnf install nodejs chromium git` plus RPM Fusion `sudo dnf swap ffmpeg-free ffmpeg --allowerasing`. Free by default. Optional paid extras: fal.ai (`FAL_KEY`) for AI footage, ElevenLabs (`ELEVENLABS_API_KEY`) for sound design, Suno for songs.
 
 ## Scripts (`scripts/`)
 - `check_env.mjs`: preflight (`--engine --tier --song`)

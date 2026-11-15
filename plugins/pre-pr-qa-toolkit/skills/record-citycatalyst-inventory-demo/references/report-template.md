@@ -105,7 +105,7 @@ If unavailable, say:
 ## Climate Advisor runtime errors
 
 - **Log coverage:** <Captured | Unavailable>
-- **Sources:** <Docker container or supplied paths>
+- **Sources:** <Docker/Podman container or supplied paths>
 - **Sanitized complete log:** <ca-runtime.log or unavailable>
 - **Observed error occurrences:** <count or unknown when unavailable>
 

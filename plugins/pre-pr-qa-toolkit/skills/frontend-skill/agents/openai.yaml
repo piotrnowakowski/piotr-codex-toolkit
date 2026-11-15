@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Skill"
+  short_description: "Build visually strong frontends"
+  default_prompt: "Use $frontend-skill to design and build this page with restrained composition and strong hierarchy."

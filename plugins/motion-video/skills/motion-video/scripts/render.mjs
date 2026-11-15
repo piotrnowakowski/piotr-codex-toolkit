@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { availableParallelism } from 'node:os';
 
 // Copied into the project by init-project.mjs so imports resolve its pinned dependencies.
 const root=dirname(fileURLToPath(import.meta.url)),out=join(root,'out');
@@ -41,9 +42,28 @@ function metadata(value){
  assert.equal(typeof value.audio,'boolean','VIDEO.audio must explicitly be true or false');
  return {...value,frames:Math.round(value.duration*value.fps)};
 }
-async function open(){
- const args=process.platform==='win32'?['--use-angle=d3d11','--enable-gpu','--ignore-gpu-blocklist']:[];
- const browser=await chromium.launch({args}),page=await browser.newPage({viewport:{width:1920,height:1080},deviceScaleFactor:1});
+// Linux: system Chromium (Omarchy /usr/bin/chromium, Fedora /usr/bin/chromium-browser) avoids Playwright downloads.
+const executablePath=[process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,process.env.CHROME_PATH,'/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome-stable','/usr/bin/google-chrome'].find(p=>p&&existsSync(p));
+// Hardware WebGL through ANGLE (Vulkan, then GL/EGL); SwiftShader (CPU) is the last resort. MOTION_GPU=vulkan|gl-egl|swiftshader pins one.
+const gpuModes={vulkan:['--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist'],'gl-egl':['--use-angle=gl-egl','--enable-gpu','--ignore-gpu-blocklist'],swiftshader:[]};
+const workers=Math.max(1,Number(process.env.MOTION_WORKERS)||Math.min(8,Math.floor(availableParallelism()/2)));
+async function launch(wanted=process.env.MOTION_GPU){
+ assert(!wanted||gpuModes[wanted],`MOTION_GPU must be one of ${Object.keys(gpuModes).join(', ')}`);
+ for(const mode of wanted?[wanted]:Object.keys(gpuModes)){
+  let browser;
+  try{
+   browser=await chromium.launch({executablePath,args:gpuModes[mode]});
+   const page=await browser.newPage();
+   const gpu=await page.evaluate(()=>{const gl=document.createElement('canvas').getContext('webgl2');const info=gl?.getExtension('WEBGL_debug_renderer_info');return info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):'none';});
+   await page.close();
+   if(wanted||mode==='swiftshader'||!/SwiftShader|none/i.test(gpu))return {browser,gpu,mode};
+  }catch{}
+  await browser?.close();
+ }
+ throw new Error('Chromium could not start; set PLAYWRIGHT_CHROMIUM_EXECUTABLE or run npx playwright install chromium');
+}
+async function preparePage(browser){
+ const page=await browser.newPage({viewport:{width:1920,height:1080},deviceScaleFactor:1});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());
@@ -58,8 +78,13 @@ async function open(){
   await page.waitForFunction(()=>window.__ready===true,null,{timeout:60000});
   const video=metadata(await page.evaluate(()=>window.VIDEO));
   await page.setViewportSize({width:video.width,height:video.height});
-  assert.deepEqual(errors,[],'Composition errors');return {browser,page,video,errors};
- }catch(error){await browser.close();throw new Error(`${error.message}\n${errors.join('\n')}`);}
+  assert.deepEqual(errors,[],'Composition errors');return {page,video,errors};
+ }catch(error){await page.close();throw new Error(`${error.message}\n${errors.join('\n')}`);}
+}
+async function open(){
+ const {browser,gpu,mode}=await launch();
+ try{const prepared=await preparePage(browser);console.log(`Chromium ${executablePath??'(Playwright bundled)'} · WebGL ${mode}: ${gpu}`);return {browser,gpu,mode,...prepared};}
+ catch(error){await browser.close();throw error;}
 }
 async function frame(page,t,path){await page.evaluate(t=>window.renderAt(t),t);return page.screenshot({path});}
 async function check(page,video){
@@ -104,12 +129,24 @@ async function review(page,video,shots){
  save('review.json',{sourceHash:hash,samples:times,directory:dir,contactSheet:join(out,'contact-sheet.jpg')});
  console.log(`Review ${join(out,'contact-sheet.jpg')} and individual samples`);
 }
-async function render(page,video){
+// Frames are independent (renderAt is a pure function of t), so workers render them in parallel.
+// One browser per worker: pages sharing a browser serialize on its GPU process and screenshot pipeline.
+async function render(page,video,errors,mode,gpu){
  const hash=sourceHash(),dir=join(out,`frames-${hash.slice(0,12)}`);mkdirSync(dir,{recursive:true});
- for(let i=0;i<video.frames;i++){
-  await frame(page,i/video.fps,join(dir,`${String(i).padStart(6,'0')}.png`));
-  if(i%120===0)console.log(`frame ${i}/${video.frames}`);
- }
+ const extra=await Promise.all(Array.from({length:Math.min(workers,video.frames)-1},async()=>{
+  const {browser}=await launch(mode);
+  try{return {browser,...await preparePage(browser)};}catch(error){await browser.close();throw error;}
+ }));
+ let next=0,done=0;
+ try{
+  await Promise.all([{page,errors},...extra].map(async worker=>{
+   for(let i;(i=next++)<video.frames;){
+    await frame(worker.page,i/video.fps,join(dir,`${String(i).padStart(6,'0')}.png`));
+    if(++done%120===0)console.log(`frame ${done}/${video.frames}`);
+   }
+  }));
+  for(const worker of extra)assert.deepEqual(worker.errors,[],'Composition errors in a render worker');
+ }finally{await Promise.all(extra.map(worker=>worker.browser.close()));}
  if(video.audio){
   const wav=await page.evaluate(()=>window.renderAudio());assert.equal(typeof wav,'string','renderAudio must return a base64 PCM WAV');
   writeFileSync(join(out,'audio.wav'),Buffer.from(wav,'base64'));
@@ -117,7 +154,7 @@ async function render(page,video){
   assert(Math.abs(Number(info.format.duration)-video.duration)<=1/video.fps,'Audio must cover the full film');
  }
  assert.equal(sourceHash(),hash,'Source changed during rendering; render again');
- save('render.json',{sourceHash:hash,video,directory:dir,completedFrames:video.frames});
+ save('render.json',{sourceHash:hash,video,directory:dir,completedFrames:video.frames,workers:extra.length+1,webgl:`${mode}: ${gpu}`});
 }
 function verify(){
  const manifest=load('render.json'),video=manifest.video;
@@ -147,13 +184,13 @@ function encode(){
  const args=['-reinit_filter','0','-framerate',String(video.fps),'-i',join(manifest.directory,'%06d.png')];
  if(video.audio)args.push('-i',join(out,'audio.wav'),'-map','0:v:0','-map','1:a:0','-af','loudnorm=I=-16:TP=-2.5:LRA=10,aresample=48000,alimiter=limit=0.70:level=false','-c:a','aac','-b:a','192k','-ar','48000');
  else args.push('-an');
- args.push('-frames:v',String(video.frames),'-c:v','libx264','-preset','medium','-crf','18','-profile:v','high','-pix_fmt','yuv420p','-t',String(video.duration),'-movflags','+faststart',finalFile);
+ args.push('-frames:v',String(video.frames),'-c:v','libx264','-preset',process.env.FFMPEG_X264_PRESET||'medium','-crf','18','-threads','0','-profile:v','high','-pix_fmt','yuv420p','-t',String(video.duration),'-movflags','+faststart',finalFile);
  ffmpeg(args);verify();
 }
 if(command==='export')encode();
 else if(command==='verify')verify();
 else{
- const {browser,page,video,errors}=await open();
+ const {browser,page,video,errors,gpu,mode}=await open();
  try{
   if(command==='still'){
    const t=Number(argument);assert(Number.isFinite(t)&&t>=0&&t<video.duration,'Still time must be inside the film');
@@ -162,7 +199,7 @@ else{
   if(['check','review','all'].includes(command)){
    const shots=await check(page,video);if(command!=='check')await review(page,video,shots);
   }
-  if(command==='render'||command==='all')await render(page,video);
+  if(command==='render'||command==='all')await render(page,video,errors,mode,gpu);
   assert.deepEqual(errors,[],'Composition errors during render');
  }finally{await browser.close();}
  if(command==='all')encode();

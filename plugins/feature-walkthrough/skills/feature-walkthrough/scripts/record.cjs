@@ -2,11 +2,29 @@
 // Capture one take; compose the commentary outside the app with render.cjs.
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { createRequire } = require('node:module');
 
 function safe(text) {
   return String(text).replace(/Bearer\s+[^\s"']+/gi, 'Bearer [REDACTED]')
     .replace(/((?:password|client_secret|api_key|access_token|authorization|token)\s*[=:]\s*)[^\s,;&}]+/gi, '$1[REDACTED]').slice(0, 3000);
+}
+
+// Playwright: workspace -> PLAYWRIGHT_MODULE -> shared cache (npm i --prefix <cache> playwright).
+function loadPlaywright() {
+  if (process.env.PLAYWRIGHT_MODULE) return require(path.resolve(process.env.PLAYWRIGHT_MODULE));
+  const cache = path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache'), 'agent-tools', 'playwright');
+  for (const base of [process.cwd(), cache]) {
+    try { return createRequire(path.join(base, 'package.json'))('playwright'); } catch {}
+  }
+  throw new Error(`Playwright not found. Install once: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --prefix ${cache} playwright`);
+}
+
+// System Chromium skips Playwright browser downloads (Omarchy: chromium, Fedora: chromium-browser).
+function systemChromium() {
+  const candidates = [process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE, process.env.CHROME_PATH, '/usr/bin/chromium',
+    '/usr/bin/chromium-browser', '/usr/bin/google-chrome-stable', '/usr/bin/google-chrome'];
+  return candidates.find(p => p && fs.existsSync(p));
 }
 
 async function main() {
@@ -16,11 +34,12 @@ async function main() {
   if (typeof scenario !== 'function') throw new Error('Scenario must export an async function');
   const speed = Number(process.env.GUIDE_SPEED || 1.15);
   if (!Number.isFinite(speed) || speed <= 0 || speed > 3) throw new Error('GUIDE_SPEED must be > 0 and <= 3');
-  const localRequire = createRequire(path.join(process.cwd(), 'package.json'));
-  const { chromium } = process.env.PLAYWRIGHT_MODULE ? require(path.resolve(process.env.PLAYWRIGHT_MODULE)) : localRequire('playwright');
+  const { chromium } = loadPlaywright();
   const outDir = path.resolve(outArg);
   fs.mkdirSync(outDir); // Refuse to overwrite a take or its raw evidence.
-  const browser = await chromium.launch({ headless: process.env.GUIDE_HEADED !== '1' });
+  const headless = process.env.GUIDE_HEADED !== '1';
+  const browser = await chromium.launch({ headless, executablePath: systemChromium(),
+    args: !headless && process.env.WAYLAND_DISPLAY ? ['--ozone-platform-hint=auto'] : [] });
   let context, page, failure;
   const events = [];
   const evidence = { ok: false, rehearsal: process.env.GUIDE_REHEARSAL === '1', speed, width: 1440, height: 792, barHeight: 108, events };

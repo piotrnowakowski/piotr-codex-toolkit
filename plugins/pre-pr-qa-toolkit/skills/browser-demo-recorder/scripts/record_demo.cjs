@@ -57,8 +57,13 @@ Options:
   --name <name>        Video basename, default browser-demo
   --width <px>         Viewport/video width, default 1280
   --height <px>        Viewport/video height, default 720
-  --headed             Show the browser window, default
+  --headed             Show the browser window, default (falls back to headless without a display)
   --headless           Run headless
+
+Environment:
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE / CHROME_PATH  Browser binary; else /usr/bin/chromium, chromium-browser, google-chrome
+  PLAYWRIGHT_MODULE    Playwright module directory; else workspace, then ~/.cache/agent-tools/playwright
+  FFMPEG_X264_PRESET   x264 preset for MP4 conversion, default veryfast
   --hold-ms <ms>       Final hold before closing, default 1500
   --no-mp4             Keep only WebM
 `);
@@ -93,18 +98,52 @@ function workspaceRequire() {
   );
 }
 
+function sharedToolsDir() {
+  const cacheHome =
+    process.env.XDG_CACHE_HOME || path.join(require("node:os").homedir(), ".cache");
+  return path.join(cacheHome, "agent-tools", "playwright");
+}
+
+// Workspace Playwright, then PLAYWRIGHT_MODULE, then the shared tools cache.
 function loadPlaywright() {
-  try {
-    return workspaceRequire()("playwright");
-  } catch (error) {
+  const attempts = [
+    () => workspaceRequire()("playwright"),
+    () =>
+      process.env.PLAYWRIGHT_MODULE
+        ? require(path.resolve(process.env.PLAYWRIGHT_MODULE))
+        : null,
+    () =>
+      createRequire(path.join(sharedToolsDir(), "package.json"))("playwright"),
+    () => require("playwright"),
+  ];
+  for (const attempt of attempts) {
     try {
-      return require("playwright");
-    } catch {
-      throw new Error(
-        "Cannot load Playwright. Run `npm install -D playwright` in the workspace, then retry.",
-      );
-    }
+      const mod = attempt();
+      if (mod) return mod;
+    } catch {}
   }
+  throw new Error(
+    `Cannot load Playwright. Install it once into the shared tools cache:\n` +
+      `  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i --prefix "${sharedToolsDir()}" playwright\n` +
+      `or set PLAYWRIGHT_MODULE to an existing playwright module directory.`,
+  );
+}
+
+// Prefer a system Chromium (Omarchy/Arch, Fedora) to avoid Playwright browser downloads.
+function resolveChromiumExecutable() {
+  const candidates = [
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+    process.env.CHROME_PATH,
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+  ];
+  return candidates.find((file) => file && fs.existsSync(file)) || undefined;
+}
+
+function hasDisplay() {
+  return Boolean(process.env.WAYLAND_DISPLAY || process.env.DISPLAY);
 }
 
 async function withTimeout(label, promise, ms = 3000) {
@@ -264,11 +303,19 @@ function convertToMp4(webmPath, mp4Path) {
   const result = spawnSync(
     "ffmpeg",
     [
+      "-v",
+      "error",
       "-y",
       "-i",
       webmPath,
       "-c:v",
       "libx264",
+      "-preset",
+      process.env.FFMPEG_X264_PRESET || "veryfast",
+      "-crf",
+      "20",
+      "-threads",
+      "0",
       "-pix_fmt",
       "yuv420p",
       "-movflags",
@@ -313,9 +360,18 @@ async function main() {
   await fsp.rm(metadataPath, { force: true }).catch(() => {});
   await fsp.rm(findingsPath, { force: true }).catch(() => {});
 
+  if (args.headed && !hasDisplay()) {
+    console.error("No WAYLAND_DISPLAY/DISPLAY; recording headless.");
+    args.headed = false;
+  }
+  const executablePath = resolveChromiumExecutable();
   const browser = await chromium.launch({
     headless: !args.headed,
-    args: ["--disable-search-engine-choice-screen"],
+    executablePath,
+    args: [
+      "--disable-search-engine-choice-screen",
+      ...(args.headed ? ["--ozone-platform-hint=auto"] : []),
+    ],
   });
 
   const context = await browser.newContext({
@@ -463,6 +519,8 @@ async function main() {
     findingsFile: findingsPath,
     width: args.width,
     height: args.height,
+    headed: args.headed,
+    browserExecutable: executablePath || "playwright-bundled",
     ...evidence,
   };
   await fsp.writeFile(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`);

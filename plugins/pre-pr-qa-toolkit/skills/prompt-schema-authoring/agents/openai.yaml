@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompt Schema Authoring"
+  short_description: "Write structured LLM prompt files"
+  default_prompt: "Use $prompt-schema-authoring to create or update this prompt with role, task, input and output blocks."

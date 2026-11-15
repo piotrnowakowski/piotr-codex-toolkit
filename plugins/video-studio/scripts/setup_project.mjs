@@ -40,7 +40,7 @@ if (engine === 'p5' || engine === 'hybrid') {
   if (existsSync(join(dir, 'reference/PDoomVideo'))) console.log('already present');
   else run(`git clone --depth 1 https://github.com/JohnHeibel/PDoomVideo reference/PDoomVideo`);
   step('npm install');
-  existsSync(join(dir, 'node_modules/p5.brush')) ? console.log('already installed') : run('npm install');
+  existsSync(join(dir, 'node_modules/p5.brush')) ? console.log('already installed') : run('npm install --prefer-offline --no-audit --no-fund');
 }
 
 const resFlag = { landscape: 'landscape', portrait: 'portrait', square: 'square', '1920x1080': 'landscape', '1080x1920': 'portrait', '1080x1080': 'square' }[res] || 'landscape';
@@ -87,8 +87,8 @@ if (tier !== 'A') {
   const pkg = join(engine === 'hyperframes' ? dir : dir, 'package.json');
   const has = n => existsSync(pkg) && readFileSync(pkg, 'utf8').includes(`"${n}"`);
   if (!existsSync(pkg)) run('npm init -y');
-  has('@fal-ai/client') ? console.log('@fal-ai/client present') : run('npm i @fal-ai/client');
-  if (process.env.ELEVENLABS_API_KEY) has('@elevenlabs/elevenlabs-js') ? console.log('elevenlabs present') : run('npm i @elevenlabs/elevenlabs-js');
+  has('@fal-ai/client') ? console.log('@fal-ai/client present') : run('npm i --prefer-offline --no-audit --no-fund @fal-ai/client');
+  if (process.env.ELEVENLABS_API_KEY) has('@elevenlabs/elevenlabs-js') ? console.log('elevenlabs present') : run('npm i --prefer-offline --no-audit --no-fund @elevenlabs/elevenlabs-js');
 }
 
 // --- gitignore secrets and renders

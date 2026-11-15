@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Step 2 of video-studio. Scaffold a ready-to-render video project folder for a brief. It clones ClaudeAnimationBase (p5.brush) with the PDoomVideo reference and/or initialises a HyperFrames project (hybrid = both, HyperFrames in cut/), places the song and the brief, installs fal/ElevenLabs clients for AI-footage tiers, protects secrets in .gitignore and runs a preflight check (Node, Chrome, ffmpeg, plugin, keys, audio). Use this after the scenario skill, or whenever the user wants to "set up the video project", "prepare the folder", "install what the video needs" or "check if I'm ready to make the video", or has a music-video-brief.md and asks what's next.
+description: Step 2 of video-studio. Scaffold a ready-to-render video project folder for a brief. It clones ClaudeAnimationBase (p5.brush) with the PDoomVideo reference and/or initialises a HyperFrames project (hybrid = both, HyperFrames in cut/), places the song and the brief, installs fal/ElevenLabs clients for AI-footage tiers, protects secrets in .gitignore and runs a preflight check (Node, Chromium, ffmpeg/libx264, plugin, keys, audio). Use this after the scenario skill, or whenever the user wants to "set up the video project", "prepare the folder", "install what the video needs" or "check if I'm ready to make the video", or has a music-video-brief.md and asks what's next.
 ---
 
 # Setup: scaffold the video project
@@ -32,9 +32,9 @@ The HyperFrames init runs with `HYPERFRAMES_SKIP_SKILLS=1`, because the skills a
 
 ## 3. Fix what the preflight flags
 
-- **Missing tools:** give the exact install command from `<plugin-root>/references/toolchain.md` (winget/brew/apt) and offer to run it.
+- **Missing tools:** give the exact install command from `<plugin-root>/references/toolchain.md` (`pacman` on Omarchy, `dnf` + RPM Fusion ffmpeg on Fedora) and offer to run it. Read `/etc/os-release` to pick the right one.
 - **HyperFrames plugin missing:** Claude Code: `claude plugin marketplace add heygen-com/hyperframes` then `claude plugin install hyperframes@hyperframes`. Codex: `codex plugin marketplace add heygen-com/hyperframes` then `codex plugin add hyperframes@hyperframes`. Either needs a new session.
-- **Keys (tier B/C):** tell the user to set `FAL_KEY` / `ELEVENLABS_API_KEY` themselves (`setx` on Windows, then a new terminal). Never ask them to paste a key into chat, and never write keys into files other than a gitignored `.env` the user creates.
+- **Keys (tier B/C):** tell the user to set `FAL_KEY` / `ELEVENLABS_API_KEY` themselves (`export` in their shell, or a line in `~/.bashrc` / a gitignored `.env`). Never ask them to paste a key into chat, and never write keys into files other than a gitignored `.env` the user creates.
 - **Audio "missing"** is fine when `audio: none` or `code`. If `audio: suno`, remind them to save the track as `assets/song.mp3` once it's made.
 - **No dedicated GPU** (p5.brush watercolour fills render at seconds per frame): note it. The `create` skill will budget render time or swap to cheaper fills.
 

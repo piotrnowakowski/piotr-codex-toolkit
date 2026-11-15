@@ -1,0 +1,24 @@
+{
+  "name": "pre-pr-qa-toolkit",
+  "version": "0.4.0",
+  "description": "Verified browser recordings, adversarial break tests, GitHub-review triage and stacked-PR splits, UI/UX and frontend guidance, prompt authoring, OEF MCP workflows, and CityCatalyst demos and dependency checks. Linux-first (Omarchy, Fedora).",
+  "author": {
+    "name": "Piotr Nowakowski",
+    "url": "https://github.com/piotrnowakowski"
+  },
+  "homepage": "https://github.com/piotrnowakowski/piotr-codex-toolkit/tree/main/plugins/pre-pr-qa-toolkit",
+  "repository": "https://github.com/piotrnowakowski/piotr-codex-toolkit",
+  "keywords": [
+    "browser-testing",
+    "pre-pr",
+    "qa",
+    "playwright",
+    "github",
+    "ui-ux",
+    "frontend",
+    "prompts",
+    "oef",
+    "citycatalyst",
+    "linux"
+  ]
+}

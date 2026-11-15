@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dependabot Check"
+  short_description: "Verify a Climate Advisor dependency branch"
+  default_prompt: "Use $dependabot-check to verify this Climate Advisor branch, check whether the bump is stale and record a demo."

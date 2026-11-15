@@ -6,9 +6,9 @@ pytest -- this project ships with zero external dependencies and the tests
 shouldn't add one).
 
 Run with:
-    python -m unittest discover -s scripts/tests -v
+    python3 -m unittest discover -s scripts/tests -v
 or directly:
-    python scripts/tests/test_core.py
+    python3 scripts/tests/test_core.py
 """
 
 import sys

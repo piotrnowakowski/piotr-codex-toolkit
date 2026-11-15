@@ -25,8 +25,10 @@ Use `expect-cli` to generate and execute browser test plans against a live app. 
    - Start required local servers or use a deployed URL.
    - If the flow will trigger paid APIs or external side effects, confirm that the user wants a live run.
 3. Run Expect with an explicit instruction.
-   - Ad hoc run: `npx -y expect-cli@latest -a codex -m "<instruction>" -t changes`
-   - Full branch run: `npx -y expect-cli@latest -a codex -m "<instruction>" -t branch`
+   - Ad hoc run: `npx -y expect-cli@latest tui -a <agent> -m "<instruction>" -t changes -u <url> -y --browser-mode headless`
+   - Full branch run: same command with `-t branch`.
+   - `<agent>` is the agent running this skill: `codex` in Codex, `claude` in Claude Code.
+   - Headless needs no display, so it runs the same on Hyprland/Wayland and in a terminal-only session. Use `--browser-mode headed` only when the user wants to watch.
    - First-time install path if the user wants it: `npx -y expect-cli@latest init`
 4. Write good instructions for the agent.
    - Include the exact URL, the user flow, expected results, and any hard assertions.
@@ -42,7 +44,7 @@ Use `expect-cli` to generate and execute browser test plans against a live app. 
 
 ## Query Mechanism Urbind Defaults
 
-- Backend from repo root: `uv sync --group dev`, then `python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000`
+- Backend from repo root: `uv sync --group dev`, then `uv run python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000`
 - Frontend from `frontend/`: `npm install`, then `npm run dev`
 - Optional frontend env: `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000`
 - Default local URLs: frontend `http://127.0.0.1:3000`, backend `http://127.0.0.1:8000`

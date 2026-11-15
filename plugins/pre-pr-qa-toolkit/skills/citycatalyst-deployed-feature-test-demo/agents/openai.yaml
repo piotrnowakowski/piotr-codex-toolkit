@@ -1,0 +1,4 @@
+interface:
+  display_name: "CityCatalyst Deployed Feature Demo"
+  short_description: "Test a deployed CityCatalyst feature on video"
+  default_prompt: "Use $citycatalyst-deployed-feature-test-demo to plan a recorded test of this deployed CityCatalyst feature on the dev server."
