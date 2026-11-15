@@ -31,6 +31,17 @@ Needs Node 22+, Chrome, ffmpeg and git. For the HyperFrames engine, also install
 
 Invoke **Motion Video** or `$motion-video`. See [the skill](plugins/motion-video/skills/motion-video/SKILL.md) for starter and renderer commands.
 
+`feature-walkthrough` records real application features in the style of the Vite lease-report guide:
+
+- Plain step-by-step captions below the app, a visible cursor and highlighted controls.
+- A real user journey through the visible result and actual downloaded output.
+- Explicit idle-wait cuts, a final caption timeline and an evidence report.
+- Silent 1440 × 900 MP4 output; default 1.15× speed with reading time preserved.
+
+Requires Node.js, Playwright, FFmpeg with the subtitles filter, and ffprobe. No original footage, client documents, credentials or paid media service is bundled. See [the skill](plugins/feature-walkthrough/skills/feature-walkthrough/SKILL.md).
+
+For Devin or another SKILL.md-compatible agent, copy the complete `plugins/feature-walkthrough/skills/feature-walkthrough` folder into its skills directory (for example the project's `.devin/skills/feature-walkthrough`). Keep `scripts/` and `references/` with `SKILL.md`.
+
 ## Prerequisites
 
 - Install the Product Design plugin. `pre-pr-feature-audit` requires `product-design:audit` on every run.
@@ -48,6 +59,7 @@ codex plugin marketplace add piotrnowakowski/piotr-codex-toolkit
 codex plugin add pre-pr-qa-toolkit@piotr-codex-toolkit
 codex plugin add video-studio@piotr-codex-toolkit
 codex plugin add motion-video@piotr-codex-toolkit
+codex plugin add feature-walkthrough@piotr-codex-toolkit
 ```
 
 The video plugins also install in Claude Code from the same repository:
@@ -56,6 +68,7 @@ The video plugins also install in Claude Code from the same repository:
 claude plugin marketplace add piotrnowakowski/piotr-codex-toolkit
 claude plugin install video-studio@piotr-codex-toolkit
 claude plugin install motion-video@piotr-codex-toolkit
+claude plugin install feature-walkthrough@piotr-codex-toolkit
 ```
 
 Restart or refresh the Codex app, then test the plugin in a new conversation.
@@ -69,6 +82,7 @@ codex plugin marketplace upgrade piotr-codex-toolkit
 codex plugin add pre-pr-qa-toolkit@piotr-codex-toolkit
 codex plugin add video-studio@piotr-codex-toolkit
 codex plugin add motion-video@piotr-codex-toolkit
+codex plugin add feature-walkthrough@piotr-codex-toolkit
 ```
 
 Use a new conversation after reinstalling so Codex loads the refreshed skills.

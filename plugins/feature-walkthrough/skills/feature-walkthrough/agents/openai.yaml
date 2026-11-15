@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Walkthrough"
+  short_description: "Record features with clear step-by-step captions"
+  default_prompt: "Use $feature-walkthrough to record this feature like the lease-report guide, with captions, highlights and a playable MP4."
