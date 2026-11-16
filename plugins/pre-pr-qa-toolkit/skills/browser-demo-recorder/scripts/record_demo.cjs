@@ -6,7 +6,7 @@ const process = require("node:process");
 const { spawnSync } = require("node:child_process");
 const { createRequire } = require("node:module");
 
-const RECORDER_VERSION = "1.1.0";
+const RECORDER_VERSION = "1.2.0";
 const FINDING_CATEGORIES = new Set([
   "needs-work",
   "crashed-or-broke",
@@ -29,6 +29,8 @@ function parseArgs(argv) {
     const next = () => argv[++i];
     if (arg === "--script") args.script = next();
     else if (arg === "--url") args.url = next();
+    else if (arg === "--wait-for") args.waitFor = next();
+    else if (arg === "--wait-timeout-ms") args.waitTimeoutMs = Number(next());
     else if (arg === "--output-dir") args.outputDir = next();
     else if (arg === "--name") args.name = next();
     else if (arg === "--width") args.width = Number(next());
@@ -53,6 +55,8 @@ Usage:
 Options:
   --script <path>      CommonJS module exporting async ({ page, step, highlight, wait, finding }) => {}
   --url <url>          Simple recording target when no script is supplied
+  --wait-for <url>     Wait until this URL answers (<500) before launching the browser
+  --wait-timeout-ms <ms>  Readiness timeout for --wait-for, default 120000
   --output-dir <dir>   Output folder. Defaults to repo-root/output/browser-demo-recording inside a git repo, else ./demo-recording
   --name <name>        Video basename, default browser-demo
   --width <px>         Viewport/video width, default 1280
@@ -143,7 +147,25 @@ function resolveChromiumExecutable() {
 }
 
 function hasDisplay() {
+  if (process.platform === "win32" || process.platform === "darwin") return true;
   return Boolean(process.env.WAYLAND_DISPLAY || process.env.DISPLAY);
+}
+
+// Poll a URL until it answers below 500, so callers need no sleep loops before recording.
+async function waitForUrl(url, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  let last = "no response";
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(5000) });
+      if (response.status < 500) return;
+      last = `HTTP ${response.status}`;
+    } catch (error) {
+      last = error.cause?.code || error.cause?.errors?.[0]?.code || error.message;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  throw new Error(`${sanitizeUrl(url)} not ready after ${timeoutMs}ms (${last})`);
 }
 
 async function withTimeout(label, promise, ms = 3000) {
@@ -336,6 +358,10 @@ async function main() {
 
   if (!args.script && !args.url) {
     throw new Error("Provide either --script or --url.");
+  }
+
+  if (args.waitFor) {
+    await waitForUrl(args.waitFor, args.waitTimeoutMs || 120000);
   }
 
   const { chromium } = loadPlaywright();
