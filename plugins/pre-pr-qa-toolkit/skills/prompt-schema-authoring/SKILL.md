@@ -52,6 +52,12 @@ Use this skill to keep prompts explicit, contract-driven, and context-efficient.
 
 - If you change prompt output fields, update models, coercion/parsing, runtime logic, and tests in the same change.
 
+8. Verify cheapest first.
+
+- Run the existing unit tests for the prompt, its models, and its parsing first. They need no server and no LLM call.
+- Run a live LLM check only when the change affects model behavior that tests cannot show. Start the app or dev server as a background process, wait for readiness with one bounded check (a health endpoint with a timeout), and run all probe cases from one script in one call.
+- Do not poll logs or endpoints with `sleep`, `Start-Sleep`, or `until`/`while` loops. Run any check that can take over a minute in the background and wait for that task.
+
 ## Required Prompt Rules
 
 - Keep instructions explicit and operational.

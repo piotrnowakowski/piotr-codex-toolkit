@@ -175,3 +175,9 @@ Motion rules:
 - Are cards actually necessary?
 - Does motion improve hierarchy or atmosphere?
 - Would the design still feel premium if all decorative shadows were removed?
+
+## Checking The Result In A Browser
+
+- Wait for one element that proves the view rendered, with a timeout of about 10 seconds. Do not wait 60 seconds.
+- If a wait or screenshot fails, do not repeat the same call. First read the page state once: the console errors, the current URL, and whether the selector exists in the DOM. Then fix the cause (a failed request, a script error, a wrong selector, or a server that is not running) before you check again.
+- Change the selector only after the DOM shows that the old one is wrong.

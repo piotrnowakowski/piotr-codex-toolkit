@@ -2,7 +2,7 @@
 name: browser-demo-recorder
 description: Record verified browser demos, product walkthroughs, and bug reproductions with Playwright, including timecoded evidence and a structured outcome report. Use when the user explicitly asks for a browser video, recorded walkthrough, or browser-flow demonstration. Do not trigger solely for code review, security review, or a general UX audit without a requested recording.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Browser Demo Recorder
@@ -23,11 +23,11 @@ Use Playwright video recording instead of OS-level capture unless the requested 
 ## Core workflow
 
 1. Infer the target URL, persona, account, and user flow from the request and workspace. Ask only when a missing choice would materially change the result.
-2. For a local app, reuse an existing healthy server when possible. Record the process identity of any server started for the demo.
-3. Verify the target URL before recording.
+2. For a local app, reuse an existing healthy server when possible. Start any new server as a background process and record its process identity.
+3. Verify the target URL before recording with the recorder's `--wait-for <url>`. Do not write `sleep`, `Start-Sleep`, or `until`/`while` polling loops.
 4. Inside a Git repository, use the ignored repo-root directory `output/browser-demo-recording/` for scenarios, raw video, final video, preview frames, findings, metadata, and reports.
-5. Create a deterministic CommonJS scenario when interaction is required.
-6. Run `scripts/record_demo.cjs` from this skill. If `--output-dir` is omitted, the recorder defaults to `output/browser-demo-recording/` at the Git root.
+5. Create a deterministic CommonJS scenario when interaction is required. Write it with the file-write tool and fix it with the file-edit tool, not with shell string replacement.
+6. Run `scripts/record_demo.cjs` from this skill. Never write a separate Playwright recorder. If `--output-dir` is omitted, the recorder defaults to `output/browser-demo-recording/` at the Git root.
 7. Preserve partial video and evidence if the flow stops early.
 8. Verify the recorder metadata, nonzero video duration and size, and at least one representative frame.
 9. Write the report using [references/report-template.md](references/report-template.md), embed the video, and link the saved report.
@@ -46,11 +46,16 @@ record_dir="$repo_root/output/browser-demo-recording"
 recorder="<skill-dir>/scripts/record_demo.cjs"
 
 node "$recorder" \
+  --wait-for http://localhost:3000/ \
   --script "$record_dir/scenario.cjs" \
   --output-dir "$record_dir" \
   --name app-demo \
   --headed
 ```
+
+The recorder prints the metadata JSON on stdout. Read it from there instead of opening the files with a shell.
+
+Run the recorder in the background when the take can last over a minute (LLM calls, uploads, long flows), then wait for that background task. A foreground command is stopped at 10 minutes and its output is lost.
 
 Simple page:
 
@@ -62,7 +67,7 @@ node "$recorder" \
   --headed
 ```
 
-Headed mode works on Wayland (Omarchy/Hyprland) and X11; the recorder passes `--ozone-platform-hint=auto`. Without a display (SSH, CI) use headless mode.
+Headed mode works on Windows, macOS, Wayland (Omarchy/Hyprland) and X11; on Linux the recorder passes `--ozone-platform-hint=auto`. Without a display (SSH, CI) use headless mode.
 
 ## Scenario contract
 
@@ -111,7 +116,7 @@ The recorder assigns the elapsed `MM:SS` timestamp.
 
 - Prefer role, label, text, and test-ID locators.
 - Prefer stable `data-*` hooks over brittle text guesses for flaky controls.
-- Insert short waits after navigation, animation, typing, and route transitions.
+- Wait for state with locators (`locator.waitFor()`, `page.waitForURL()`, `page.waitForResponse()`), not fixed delays. Use `wait(ms)` only to pace the video for the viewer after navigation, animation, typing, and route transitions.
 - Highlight important controls before interacting with them.
 - Keep ordinary demonstrations short, usually 15–60 seconds.
 - Use production-like inputs without exposing sensitive data.
